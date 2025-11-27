@@ -36,27 +36,32 @@ git clone [https://github.com/yourusername/novacast.git](https://github.com/your
 cd novacast
 pip install -r requirements.txt
 uvicorn backend.app:app --reload
+```
 
-Deployment
+#### Deployment
 Backend: Deploy to Render, Railway, or any Python hosting service.
 Frontend: Deploy to any static hosting (cPanel, Netlify, Vercel, etc.)
 
-Configuration
+#### Configuration
 Before deploying the frontend, update the API URL in script.min.js:
 
-javascript
+#### Javascript
 const API_BASE_URL = '[https://your-backend-url.com/api/predict'](https://your-backend-url.com/api/predict');
 
-Cache Strategy
-NovaCast implements an intelligent cache system:
 
-Near-term forecasts (≤3 days): 1-hour cache
-Mid-range forecasts (4-7 days): 3-hour cache
-Long-range forecasts (8-14 days): 6-hour cache
+## Cache Strategy
+
+NovaCast implements intelligent caching to balance freshness and performance:
+
+- **Near-term forecasts (≤3 days):** 1-hour cache
+- **Mid-range forecasts (4-7 days):** 3-hour cache
+- **Long-range forecasts (8+ days):** 6-hour cache
+
 This reduces API calls while ensuring fresh data when it matters most.
 
-Browser Support
-Modern browsers with ES6+ support:
+## Browser Support
+
+Works on all modern browsers with ES6+ support:
 - Chrome/Edge 90+
 - Firefox 88+
 - Safari 14+
@@ -64,22 +69,33 @@ Modern browsers with ES6+ support:
 
 **Note:** Internet Explorer is not supported.
 
-Contributing
+## Contributing
+
 We welcome contributions! Feel free to:
+- Report bugs via Issues
+- Suggest new features
+- Submit pull requests
 
-Report bugs
-Suggest new features
-Submit pull requests
+## License
 
-License
 This project was developed for the NASA Space Apps Challenge 2025 by NovaPulse.
 
-Credits
-Team: NovaPulse
-Data Source: NASA POWER API , Nasa Giovanni , OpenMeteo Era5
-Challenge: NASA Space Apps Challenge 2025
+## Credits
 
-Acknowledgments
-Special thanks to NASA for providing the data and making this project possible.
+**Team:** NovaPulse  
 
-Built with passion by NovaPulse Team.
+**Data Sources:**
+- NASA POWER API
+- Open-Meteo ERA5
+- Open-Meteo Forecast API
+- Open-Meteo Geocoding
+
+**Challenge:** NASA Space Apps Challenge 2025
+
+## Acknowledgments
+
+Special thanks to NASA for providing the POWER API and making long-range climate predictions accessible. Thanks to Open-Meteo for their comprehensive weather data services.
+
+Built with passion by NovaPulse.
+
+
