@@ -32,7 +32,7 @@ class WeatherRequest(BaseModel):
     lat: float
     lon: float
     target_date: str
-    horizon_days: Optional[int] = 360
+    horizon_days: Optional[int] = 150
 
 @app.get("/")
 def home():
