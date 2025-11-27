@@ -4,11 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Advanced weather forecasting with NASA POWER ensemble data">
+    <meta name="description" content="Advanced long-term weather forecasting with NASA POWER ensemble data">
     <meta name="theme-color" content="#2979FF">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>NovaCast - Weather Forecast</title>
+    <title>NovaCast</title>
     <link rel="stylesheet" href="styles.min.css">
     <link rel="icon" type="image/webp" href="IMG_5959.webp">
     <link rel="apple-touch-icon" href="IMG_5959.webp">
@@ -90,7 +90,7 @@
     <footer>
         <div class="footer-content">
             <div>NovaPulse® &middot; 04.10.2025</div>
-            <div class="version">NovaCast 1.4.1</div>
+            <div class="version">NovaCast 1.4.2</div>
             <div class="space-apps-logo">
                 <img src="Colorway=2-Color White@3x.png" alt="NASA Space Apps Challenge Logo Dark"
                     class="space-logo dark-logo">
@@ -102,7 +102,7 @@
 
     <script src="script.min.js"></script>
     <script>
-        // PWA Service Worker Registration
+        
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js')
@@ -116,5 +116,6 @@
         }
     </script>
 </body>
+
 
 </html>
