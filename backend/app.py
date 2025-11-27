@@ -27,9 +27,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static files (frontend)
-app.mount("/static", StaticFiles(directory="frontend"), name="static")
-
 # Pydantic model for the request body
 class WeatherRequest(BaseModel):
     lat: float
