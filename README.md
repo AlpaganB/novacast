@@ -9,7 +9,7 @@ A modern weather forecasting application built for the NASA Space Apps Challenge
 - **Smart Blending** - Uses 50/50 ensemble of POWER + ERA5 for robust climatology
 - **Intelligent Caching** - Graduated cache strategy (1h/3h/6h) based on forecast range
 - **Dark/Light Themes** - User friendly interface with seamless theme switching
-- **Planner Mode** - Weather-based activity recommendations with smooth animations
+- **Planner Mode** - Weather based activity recommendations
 - **Favorite Cities** - Save and quickly access your most checked locations
 - **PWA Support** - Install as a mobile or desktop app with offline capability
 - **Responsive Design** - Works flawlessly on all devices
@@ -23,7 +23,7 @@ A modern weather forecasting application built for the NASA Space Apps Challenge
 - **Open-Meteo Forecast** - 0-16 day NWP predictions
 - **Open-Meteo Geocoding** - City name to coordinates
 - **Pandas & NumPy** - Data processing and ensemble calculations
-- 
+
 ### Frontend
 - **Vanilla JavaScript** - No frameworks, pure performance
 - **CSS3** - Smooth animations and glassmorphism effects
