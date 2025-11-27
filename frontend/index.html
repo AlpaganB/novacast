@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Advanced weather forecasting with NASA POWER ensemble data">
+    <meta name="theme-color" content="#2979FF">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>NovaCast - Weather Forecast</title>
+    <link rel="stylesheet" href="styles.min.css">
+    <link rel="icon" type="image/webp" href="IMG_5959.webp">
+    <link rel="apple-touch-icon" href="IMG_5959.webp">
+    <link rel="manifest" href="manifest.json">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <img src="IMG_5959.webp" alt="NovaPulse Team Logo" class="team-logo">
+                Weather Forecast
+            </div>
+            <div class="controls">
+                <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark Mode</button>
+                <button class="planner-toggle" onclick="togglePlanner()">📋 Plan Mode</button>
+            </div>
+        </header>
+
+        <section class="search-section">
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Enter city name..." id="cityInput">
+                <input type="date" class="date-input" id="dateInput" min="" max="">
+                <button class="search-btn" onclick="searchWeather()">Get Weather</button>
+                <button class="refresh-btn" onclick="refreshForecast()" title="Refresh data">🔄</button>
+            </div>
+            <div id="cacheStatus"></div>
+        </section>
+
+        <div class="main-content">
+            <div class="weather-card">
+                <!-- Empty State Message -->
+                <div class="empty-state-message" id="emptyState">
+                    <div class="empty-icon">🌍</div>
+                    <h3>Welcome to NovaCast</h3>
+                    <p>Enter a city name above to explore the forecast.</p>
+                </div>
+
+                <!-- Weather Data Container (Initially Hidden) -->
+                <div class="weather-data-container" id="weatherData" style="display: none;">
+                    <div class="location-info">
+                        <div class="city-name" id="cityName">-</div>
+                        <div class="date-display" id="selectedDate">-</div>
+                    </div>
+
+                    <div class="weather-main">
+                        <div class="temperature" id="temperature">-°C</div>
+                        <div class="weather-description" id="weatherDesc">-</div>
+                    </div>
+
+                    <div class="weather-details">
+                        <div class="detail-item">
+                            <div>Precipitation Chance</div>
+                            <div id="precipitation">- %</div>
+                        </div>
+                        <div class="detail-item">
+                            <div>Precipitation Type</div>
+                            <div id="precipitationType">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="weather-card">
+                <h3>Favorite Cities</h3>
+                <div class="favorite-cities" id="favoriteCities"></div>
+                <button class="search-btn" onclick="addToFavorites()">
+                    Add Current City to Favorites
+                </button>
+            </div>
+        </div>
+
+        <div class="planner-warnings hidden" id="plannerWarnings">
+            <h3>📋 Plan Recommendations</h3>
+            <div id="warningsContainer"></div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div>NovaPulse® &middot; 04.10.2025</div>
+            <div class="version">NovaCast 1.4.1</div>
+            <div class="space-apps-logo">
+                <img src="Colorway=2-Color White@3x.png" alt="NASA Space Apps Challenge Logo Dark"
+                    class="space-logo dark-logo">
+                <img src="Colorway=1-Color Black@3x.png" alt="NASA Space Apps Challenge Logo Light"
+                    class="space-logo light-logo">
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.min.js"></script>
+    <script>
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful');
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+    </script>
+</body>
+
+</html>
