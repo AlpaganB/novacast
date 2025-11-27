@@ -1,12 +1,13 @@
 from fastapi import FastAPI, HTTPException
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime, date
 from typing import Optional
 import traceback
+import sys
 import os
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 try:
     from nova_logic import forecast_core, VERSION
