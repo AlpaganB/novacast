@@ -11,12 +11,15 @@ import os
 try:
     from nova_logic import forecast_core, VERSION
 except ImportError:
-    print("HATA: 'nova_logic.py' bulunamadı.")
-    VERSION = "Modül Yüklenemedi"
+    # ERROR: 'nova_logic.py' not found.
+    print("ERROR: 'nova_logic.py' not found.")
+    VERSION = "Module Could Not Be Loaded"
     forecast_core = None
 
-app = FastAPI(title="NovaCast Hava Durumu Tahmin API'si")
+# Initialize FastAPI application (NovaCast Weather Forecast API)
+app = FastAPI(title="NovaCast Weather Forecast API")
 
+# Add CORS Middleware to allow requests from any origin
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -24,9 +27,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Statik dosyaları (frontend) sunmak için
+# Mount static files (frontend)
 app.mount("/static", StaticFiles(directory="frontend"), name="static")
 
+# Pydantic model for the request body
 class WeatherRequest(BaseModel):
     lat: float
     lon: float
@@ -35,28 +39,33 @@ class WeatherRequest(BaseModel):
 
 @app.get("/")
 def home():
-    # Frontend ana sayfasını sun
+    # Serve the frontend main page
     return FileResponse('frontend/index.html')
 
 @app.post("/api/predict")
 def predict_weather(req: WeatherRequest):
     if forecast_core is None:
+        # Raise 503 if the core logic could not be loaded
         raise HTTPException(
             status_code=503,
-            detail="Tahmin servisi hazır değil (nova_logic.py yüklenemedi)."
+            detail="Forecast service is not ready (nova_logic.py could not be loaded)."
         )
 
     try:
+        # Convert target_date string to date object (YYYYMMDD)
         target_date_obj = datetime.strptime(req.target_date, "%Y%m%d").date()
         today = date.today()
+        # Calculate the number of days between today and the target date
         horizon_days = (target_date_obj - today).days
 
         if horizon_days < 0:
-            raise HTTPException(status_code=400, detail="Hedef tarih geçmişte olamaz.")
+            raise HTTPException(status_code=400, detail="Target date cannot be in the past.")
 
+        # Determine the required forecast horizon
         required_horizon = max(req.horizon_days, horizon_days + 1)
-        required_horizon = min(required_horizon, 540) # Limit artırıldı
+        required_horizon = min(required_horizon, 540) # Limit increased
 
+        # Call the core forecasting function
         full_output, daily_forecasts = forecast_core(
             lat=req.lat,
             lon=req.lon,
@@ -65,29 +74,34 @@ def predict_weather(req: WeatherRequest):
         )
 
         if not daily_forecasts or len(daily_forecasts) == 0:
-            print("HATA: forecast_core boş liste döndürdü.")
+            # ERROR: forecast_core returned an empty list.
+            print("ERROR: forecast_core returned an empty list.")
             raise HTTPException(
                 status_code=404,
-                detail="Tahmin motorundan günlük veri alınamadı."
+                detail="No daily data received from the forecast engine."
             )
 
-        print(f"✓ {len(daily_forecasts)} günlük veri döndürülüyor")
-        return {"gunluk": daily_forecasts}
+        # Returning N days of data
+        print(f"✓ Returning {len(daily_forecasts)} days of data")
+        return {"daily": daily_forecasts}
 
     except ValueError:
+        # Handle incorrect date format
         raise HTTPException(
             status_code=400,
-            detail="target_date formatı yanlış. Beklenen format: YYYYMMDD"
+            detail="Incorrect target_date format. Expected format: YYYYMMDD"
         )
     except HTTPException as http_e:
+        # Re-raise explicit HTTPExceptions
         raise http_e
     except Exception as e:
+        # Catch and handle all other unexpected server errors
         print("="*50)
-        print("❌ BEKLENMEDIK SUNUCU HATASI:")
-        print(f"Hata: {str(e)}")
+        print("❌ UNEXPECTED SERVER ERROR:")
+        print(f"Error: {str(e)}")
         print(traceback.format_exc())
         print("="*50)
         raise HTTPException(
             status_code=500,
-            detail=f"Tahmin sırasında sunucu hatası: {e.__class__.__name__}"
+            detail=f"Server error during forecast: {e.__class__.__name__}"
         )
