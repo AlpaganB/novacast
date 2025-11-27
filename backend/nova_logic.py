@@ -1,13 +1,12 @@
 import sys, json, time, math, argparse
 from datetime import datetime, timezone, timedelta, date
 from typing import Optional, List, Tuple, Dict
-from functools import lru_cache  # ✨ Backend caching support
-
+from functools import lru_cache
 import numpy as np
 import pandas as pd
 import requests
 
-VERSION = "novaLogic v1.4.1 - Optimized"
+VERSION = "novaLogic v1.4.2"
 TZ = "Europe/Istanbul"
 
 try:
@@ -106,6 +105,65 @@ def fetch_era5_daily(lat: float, lon: float, start_date: str, end_date: Optional
     }, index=idx).sort_index()
     return df
 
+@lru_cache(maxsize=32)
+def fetch_nasa_power_daily(lat: float, lon: float, start_date: str, end_date: Optional[str] = None, debug=False):
+    """Fetch NASA POWER API daily climate data"""
+    if end_date is None: 
+        end_date = yesterday().strftime("%Y%m%d")
+    else:
+        end_date = end_date.replace("-", "")
+    
+    start_date = start_date.replace("-", "")
+    
+    params = {
+        "parameters": "T2M_MAX,PRECTOTCORR",
+        "community": "RE",
+        "longitude": lon,
+        "latitude": lat,
+        "start": start_date,
+        "end": end_date,
+        "format": "JSON"
+    }
+    
+    url = "https://power.larc.nasa.gov/api/temporal/daily/point"
+    js = http_get_json(url, params=params, timeout=60, retries=3, backoff=2.0, debug=debug)
+    
+    if js is None or "properties" not in js or "parameter" not in js["properties"]:
+        return None
+    
+    params_data = js["properties"]["parameter"]
+    
+    if "T2M_MAX" not in params_data or "PRECTOTCORR" not in params_data:
+        return None
+    
+    # Parse dates and create dataframe
+    tmax_data = params_data["T2M_MAX"]
+    prcp_data = params_data["PRECTOTCORR"]
+    
+    dates = []
+    tmax_vals = []
+    prcp_vals = []
+    
+    for date_str, val in tmax_data.items():
+        try:
+            date_obj = pd.to_datetime(date_str, format="%Y%m%d")
+            dates.append(date_obj)
+            tmax_vals.append(val if val != -999 else None)
+            prcp_vals.append(prcp_data.get(date_str, 0) if prcp_data.get(date_str, -999) != -999 else 0)
+        except:
+            continue
+    
+    if not dates:
+        return None
+    
+    df = pd.DataFrame({
+        "POWER_TMAX": tmax_vals,
+        "POWER_PRCP": prcp_vals
+    }, index=pd.DatetimeIndex(dates)).sort_index()
+    
+    return df
+
+
 def compute_daily_clim(series: pd.Series, smooth_window: int = 7) -> pd.Series:
     df = pd.DataFrame({"v": pd.to_numeric(series, errors="coerce")}).dropna()
     if df.empty: 
@@ -191,14 +249,54 @@ def infer_precip_type(mm: float,
 def forecast_core(lat: float, lon: float, horizon_days: int, debug: bool=False, emit_components: bool=False):
     H = int(max(1, min(horizon_days, 540)))
 
+    # Fetch both ERA5 and NASA POWER data
     era = fetch_era5_daily(lat, lon, start_date="2015-01-01", debug=debug)
+    power = fetch_nasa_power_daily(lat, lon, start_date="2015-01-01", debug=debug)
+    
+    # Use ensemble approach: prefer ERA5 but blend with POWER if available
     if era is None or era.empty:
-        raise RuntimeError("ERA5 arşiv verisi alınamadı.")
-
-    tmax_hist = pd.to_numeric(era["ERA5_TMAX"], errors="coerce")
-    prcp_hist = pd.to_numeric(era["ERA5_PRCP"], errors="coerce").fillna(0.0)
+        if power is None or power.empty:
+            raise RuntimeError("Neither ERA5 nor NASA POWER data available.")
+        # Use only POWER data
+        tmax_hist = pd.to_numeric(power["POWER_TMAX"], errors="coerce")
+        prcp_hist = pd.to_numeric(power["POWER_PRCP"], errors="coerce").fillna(0.0)
+        data_source = "NASA POWER only"
+    elif power is not None and not power.empty:
+        # Blend both sources for better accuracy
+        era_tmax = pd.to_numeric(era["ERA5_TMAX"], errors="coerce")
+        power_tmax = pd.to_numeric(power["POWER_TMAX"], errors="coerce")
+        
+        # Merge on common dates
+        combined = pd.concat([era_tmax, power_tmax], axis=1, join='outer')
+        combined.columns = ['era', 'power']
+        
+        # Ensemble: average where both available, otherwise use available source
+        tmax_hist = combined.apply(
+            lambda row: (0.5 * row['era'] + 0.5 * row['power']) if pd.notna(row['era']) and pd.notna(row['power'])
+                       else (row['era'] if pd.notna(row['era']) else row['power']),
+            axis=1
+        )
+        
+        # Same for precipitation
+        era_prcp = pd.to_numeric(era["ERA5_PRCP"], errors="coerce").fillna(0.0)
+        power_prcp = pd.to_numeric(power["POWER_PRCP"], errors="coerce").fillna(0.0)
+        combined_prcp = pd.concat([era_prcp, power_prcp], axis=1, join='outer')
+        combined_prcp.columns = ['era', 'power']
+        prcp_hist = combined_prcp.apply(
+            lambda row: (0.5 * row['era'] + 0.5 * row['power']) if row['era'] > 0 and row['power'] > 0
+                       else max(row['era'], row['power']),
+            axis=1
+        )
+        data_source = "ERA5 + NASA POWER ensemble"
+    else:
+        # Use only ERA5
+        tmax_hist = pd.to_numeric(era["ERA5_TMAX"], errors="coerce")
+        prcp_hist = pd.to_numeric(era["ERA5_PRCP"], errors="coerce").fillna(0.0)
+        data_source = "ERA5 only"
+    
     if len(tmax_hist.dropna()) < 120:
-        raise RuntimeError("Tarihsel veri yetersiz.")
+        raise RuntimeError("Historical data insufficient.")
+
 
     clim_tmax = compute_daily_clim(tmax_hist, smooth_window=7)
     clim_prcp = compute_daily_clim(prcp_hist, smooth_window=7)
@@ -282,11 +380,13 @@ def forecast_core(lat: float, lon: float, horizon_days: int, debug: bool=False, 
             "versiyon": VERSION,
             "zaman": iso_utc_now(),
             "konum": {"lat": float(lat), "lon": float(lon)},
-            "kaynaklar": ["Open-Meteo Forecast API", "Open-Meteo ERA5 Archive"]
+            "kaynaklar": ["Open-Meteo Forecast API", "Open-Meteo ERA5 Archive", "NASA POWER API"],
+            "data_source": data_source
         },
         "gunluk": rows
     }
     return out, rows
+
 
 def build_parser():
     ap = argparse.ArgumentParser(
