@@ -1,7 +1,7 @@
 const API_BASE_URL = 'https://your-backend/api/predict';
 const GEOCODING_API_URL = 'https://geocoding-api.open-meteo.com/v1/search';
 const MAX_FORECAST_DAYS = 540;
-const API_HORIZON = 540;
+const API_HORIZON = 150;
 
 let currentForecastData = null;
 let currentCity = '';
@@ -414,3 +414,4 @@ window.togglePlanner = togglePlanner;
 window.addToFavorites = addToFavorites;
 window.selectFavorite = selectFavorite;
 window.removeFavorite = removeFavorite;
+
