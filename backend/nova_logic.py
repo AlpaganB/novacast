@@ -167,7 +167,7 @@ def fetch_nasa_power_daily(lat: float, lon: float, start_date: str, end_date: Op
 def compute_daily_clim(series: pd.Series, smooth_window: int = 7) -> pd.Series:
     df = pd.DataFrame({"v": pd.to_numeric(series, errors="coerce")}).dropna()
     if df.empty: 
-        raise RuntimeError("Klimatoloji için yeterli veri yok.")
+        raise RuntimeError("Insufficient data for climatology.")
     idx = df.index
     fix = [pd.Timestamp(t.year,2,28) if (t.month==2 and t.day==29) else t for t in idx]
     doy = pd.DatetimeIndex(fix).dayofyear
@@ -220,10 +220,10 @@ def infer_precip_type(mm: float,
                       tmax: Optional[float]=None,
                       rain_mm: Optional[float]=None,
                       snow_mm: Optional[float]=None) -> str:
-    """Return 'yok' | 'yagmur' | 'kar' | 'sulu_kar'"""
+    """Return 'none' | 'rain' | 'snow' | 'sleet'"""
     mm = 0.0 if mm is None else float(mm)
     if mm < 0.1:
-        return "yok"
+        return "none"
 
     r = float(rain_mm) if (rain_mm is not None and np.isfinite(rain_mm)) else None
     s = float(snow_mm) if (snow_mm is not None and np.isfinite(snow_mm)) else None
@@ -231,20 +231,20 @@ def infer_precip_type(mm: float,
         r = 0.0 if r is None else r
         s = 0.0 if s is None else s
         if s >= 1.0 and r < 0.5:
-            return "kar"
+            return "snow"
         if r >= 0.5 and s < 1.0:
-            return "yagmur"
+            return "rain"
         if r >= 0.5 and s >= 1.0:
-            return "sulu_kar"
+            return "sleet"
 
     if tmax is not None and np.isfinite(tmax):
         if tmax <= 1.5:
-            return "kar"
+            return "snow"
         if tmax < 3.5:
-            return "sulu_kar"
-        return "yagmur"
+            return "sleet"
+        return "rain"
 
-    return "yagmur"
+    return "rain"
 
 def forecast_core(lat: float, lon: float, horizon_days: int, debug: bool=False, emit_components: bool=False):
     H = int(max(1, min(horizon_days, 540)))
@@ -273,7 +273,7 @@ def forecast_core(lat: float, lon: float, horizon_days: int, debug: bool=False, 
         # Ensemble: average where both available, otherwise use available source
         tmax_hist = combined.apply(
             lambda row: (0.5 * row['era'] + 0.5 * row['power']) if pd.notna(row['era']) and pd.notna(row['power'])
-                       else (row['era'] if pd.notna(row['era']) else row['power']),
+                        else (row['era'] if pd.notna(row['era']) else row['power']),
             axis=1
         )
         
@@ -284,7 +284,7 @@ def forecast_core(lat: float, lon: float, horizon_days: int, debug: bool=False, 
         combined_prcp.columns = ['era', 'power']
         prcp_hist = combined_prcp.apply(
             lambda row: (0.5 * row['era'] + 0.5 * row['power']) if row['era'] > 0 and row['power'] > 0
-                       else max(row['era'], row['power']),
+                        else max(row['era'], row['power']),
             axis=1
         )
         data_source = "ERA5 + NASA POWER ensemble"
@@ -356,12 +356,12 @@ def forecast_core(lat: float, lon: float, horizon_days: int, debug: bool=False, 
         ptype = infer_precip_type(mm=mm, tmax=tmax_val, rain_mm=rain_nwp, snow_mm=snow_nwp)
 
         row = {
-            "tarih": t.strftime("%Y-%m-%d"),
+            "date": t.strftime("%Y-%m-%d"),
             "tmax": float(round(tmax_val, 2)),
             "tmax_source": source,
-            "yagis_mm": float(round(mm, 2)),
-            "yagis_iht": int(p),
-            "yagis_turu": ptype
+            "precip_mm": float(round(mm, 2)),
+            "precip_prob": int(p),
+            "precip_type": ptype
         }
 
         if emit_components:
@@ -377,13 +377,13 @@ def forecast_core(lat: float, lon: float, horizon_days: int, debug: bool=False, 
 
     out = {
         "meta": {
-            "versiyon": VERSION,
-            "zaman": iso_utc_now(),
-            "konum": {"lat": float(lat), "lon": float(lon)},
-            "kaynaklar": ["Open-Meteo Forecast API", "Open-Meteo ERA5 Archive", "NASA POWER API"],
+            "version": VERSION,
+            "timestamp": iso_utc_now(),
+            "location": {"lat": float(lat), "lon": float(lon)},
+            "sources": ["Open-Meteo Forecast API", "Open-Meteo ERA5 Archive", "NASA POWER API"],
             "data_source": data_source
         },
-        "gunluk": rows
+        "daily": rows
     }
     return out, rows
 
@@ -428,3 +428,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
