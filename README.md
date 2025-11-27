@@ -32,10 +32,11 @@ A modern weather forecasting application built for the NASA Space Apps Challenge
 ### Backend Setup
 
 ```bash
-git clone [https://github.com/yourusername/novacast.git](https://github.com/yourusername/novacast.git)
+git clone [https://github.com/AlpaganB/novacast.git](https://github.com/yourusername/novacast.git)
 cd novacast
+```
+``` terminal
 pip install -r requirements.txt
-uvicorn backend.app:app --reload
 ```
 
 #### Deployment
@@ -44,10 +45,9 @@ Frontend: Deploy to any static hosting (cPanel, Netlify, Vercel, etc.)
 
 #### Configuration
 Before deploying the frontend, update the API URL in script.min.js:
-
-#### Javascript
+```script.js
 const API_BASE_URL = '[https://your-backend-url.com/api/predict'](https://your-backend-url.com/api/predict');
-
+```
 
 ## Cache Strategy
 
