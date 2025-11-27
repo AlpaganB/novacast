@@ -27,7 +27,6 @@ A modern weather forecasting application built for the NASA Space Apps Challenge
 ### Frontend
 - **Vanilla JavaScript** - No frameworks, pure performance
 - **CSS3** - Smooth animations and glassmorphism effects
-- **Minified Assets** - Optimized script.min.js and styles.min.css for production
 - **Service Worker** - PWA support with offline capability
 
 ### Backend Setup
