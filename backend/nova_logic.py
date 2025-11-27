@@ -86,7 +86,7 @@ def fetch_openmeteo_daily(lat: float, lon: float, forecast_days: int, past_days:
     elev = js.get("elevation", None)
     return df, elev
 
-@lru_cache(maxsize=32)
+@lru_cache(maxsize=16)
 def fetch_era5_daily(lat: float, lon: float, start_date: str, end_date: Optional[str] = None, debug=False):
     if end_date is None: end_date = yesterday().strftime("%Y-%m-%d")
     params = {
@@ -105,7 +105,7 @@ def fetch_era5_daily(lat: float, lon: float, start_date: str, end_date: Optional
     }, index=idx).sort_index()
     return df
 
-@lru_cache(maxsize=32)
+@lru_cache(maxsize=16)
 def fetch_nasa_power_daily(lat: float, lon: float, start_date: str, end_date: Optional[str] = None, debug=False):
     """Fetch NASA POWER API daily climate data"""
     if end_date is None: 
