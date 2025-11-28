@@ -275,8 +275,7 @@ header {
 .search-btn:active {
     transform: translateY(0);
 }
-
-/* Refresh Button Styles */
+    
 .refresh-btn {
     padding: 12px 16px;
     background-color: var(--card-background-dark);
@@ -304,7 +303,6 @@ header {
     transform: translateY(0);
 }
 
-/* Cache Status Styling */
 #cacheStatus {
     font-size: 0.85em;
     margin-top: 10px;
@@ -466,7 +464,6 @@ header {
     padding: 20px 0;
 }
 
-/* Planner Warnings with Smooth Animation */
 .planner-warnings {
     background-color: var(--card-background-dark);
     padding: 20px;
@@ -596,7 +593,6 @@ footer {
     opacity: 1;
 }
 
-/* ========== MOBILE RESPONSIVE ========== */
 @media (max-width: 600px) {
     .container {
         padding: 0 10px;
@@ -663,7 +659,6 @@ footer {
         gap: 10px;
     }
 
-    /* Refresh button mobile: Full width */
     .refresh-btn {
         width: 100% !important;
         margin-left: 0 !important;
@@ -694,7 +689,198 @@ footer {
     }
 }
 
-/* ========== EMPTY STATE STYLES ========== */
+.empty-state-message {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-color-light);
+    animation: fadeIn 0.5s ease-out;
+}
+
+.empty-icon {
+    font-size: 4em;
+    margin-bottom: 20px;
+    opacity: 0.9;
+    animation: float 3s ease-in-out infinite;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+.empty-state-message h3 {
+    font-size: 1.8em;
+    margin-bottom: 10px;
+    color: var(--primary-color);
+}
+
+.empty-state-message p {
+    font-size: 1.1em;
+    color: var(--text-color-dark);
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+
+}
+
+.no-warning {
+    font-size: 0.95em;
+    padding: 5px 0;
+    color: var(--text-color-dark);
+}
+
+footer {
+    padding: 20px 20px;
+    margin-top: 50px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    text-align: center;
+    font-size: 0.8em;
+    color: var(--text-color-dark);
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.footer-content .version {
+    font-weight: 600;
+    color: var(--secondary-color);
+}
+
+.space-apps-logo img {
+    height: 35px;
+    width: auto;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.space-apps-logo .light-logo {
+    display: none;
+}
+
+.space-apps-logo .dark-logo {
+    display: block;
+}
+
+.light-mode .space-apps-logo .light-logo {
+    display: block;
+}
+
+.light-mode .space-apps-logo .dark-logo {
+    display: none;
+}
+
+.space-apps-logo img:hover {
+    opacity: 1;
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 0 10px;
+    }
+
+    .main-content {
+        grid-template-columns: 1fr;
+    }
+
+    .weather-details {
+        grid-template-columns: 1fr;
+    }
+
+    header {
+        flex-direction: column;
+        align-items: center;
+        padding: 15px 0;
+        gap: 15px;
+    }
+
+    .team-logo {
+        height: 60px;
+        width: auto;
+        margin-right: 0;
+        margin-bottom: 5px;
+    }
+
+    .logo {
+        font-size: 1.5em;
+        margin-bottom: 0;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .space-apps-logo img {
+        height: 40px;
+        width: auto;
+        margin: 5px;
+    }
+
+    .search-input,
+    .date-input,
+    .search-btn {
+        width: 100%;
+        box-sizing: border-box;
+        font-size: 1em;
+    }
+
+    .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-left: 0;
+        justify-content: center;
+    }
+
+    .controls button {
+        font-size: 0.85em;
+    }
+
+    .search-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .refresh-btn {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-top: 10px;
+    }
+
+    footer {
+        padding: 15px 10px;
+    }
+
+    .footer-content {
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .footer-content div {
+        order: 2;
+    }
+
+    .footer-content .version {
+        order: 1;
+    }
+
+    #cacheStatus {
+        font-size: 11px;
+        padding: 6px 12px;
+    }
+}
+
 .empty-state-message {
     text-align: center;
     padding: 40px 20px;
@@ -751,4 +937,94 @@ footer {
 
 .weather-data-container {
     animation: fadeIn 0.5s ease-out;
+}
+
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    background-color: var(--card-background-dark);
+    color: var(--text-color-light);
+    padding: 16px 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border-left: 4px solid var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 300px;
+    max-width: 400px;
+    animation: slideIn 0.3s ease-out forwards;
+    backdrop-filter: blur(10px);
+}
+
+.toast.error {
+    border-left-color: #ff5252;
+}
+
+.toast.success {
+    border-left-color: #00e676;
+}
+
+.toast.info {
+    border-left-color: #2979ff;
+}
+
+.toast-message {
+    font-size: 0.95em;
+    margin-right: 10px;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    color: var(--text-color-dark);
+    cursor: pointer;
+    font-size: 1.2em;
+    padding: 0;
+    line-height: 1;
+}
+
+.toast-close:hover {
+    color: var(--text-color-light);
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+}
+
+@media (max-width: 600px) {
+    #toast-container {
+        top: auto;
+        bottom: 20px;
+        right: 20px;
+        left: 20px;
+    }
+
+    .toast {
+        min-width: auto;
+        width: 100%;
+    }
 }
