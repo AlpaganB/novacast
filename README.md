@@ -32,7 +32,7 @@ A modern weather forecasting application built for the NASA Space Apps Challenge
 ### Backend Setup
 
 ```bash
-git clone [https://github.com/AlpaganB/novacast.git](https://github.com/yourusername/novacast.git)
+git clone https://github.com/AlpaganB/novacast.git
 cd novacast
 ```
 ``` terminal
