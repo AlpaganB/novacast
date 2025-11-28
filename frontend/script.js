@@ -24,7 +24,6 @@ async function fetchWithDedup(url, options) {
   return promise;
 }
 
-/* ---------- date helpers ---------- */
 function isoLocalDate(d = new Date()) {
   return d.toLocaleDateString('en-CA');
 }
@@ -43,7 +42,6 @@ function initializeDateInputs() {
   }
 }
 
-/* ---------- theme ---------- */
 function applyInitialTheme() {
   const savedTheme = localStorage.getItem('theme');
   const isDark = savedTheme !== 'light';
@@ -62,7 +60,6 @@ function applyInitialTheme() {
   document.body.classList.toggle('image-background', localStorage.getItem('backgroundType') === 'image');
 }
 
-/* ---------- geocoding ---------- */
 async function getCoordinates(city) {
   const geoUrl = `${GEOCODING_API_URL}?name=${encodeURIComponent(city)}&count=1&language=en&format=json`;
 
@@ -279,7 +276,6 @@ function updateWeatherCard(forecast, customDesc = null) {
   document.getElementById('precipitationType').textContent = precipitationType;
 }
 
-/* ---------- toggles ---------- */
 function toggleTheme() {
   const isLight = document.body.classList.toggle('light-mode');
   localStorage.setItem('theme', isLight ? 'light' : 'dark');
@@ -305,7 +301,6 @@ function togglePlanner() {
   }
 }
 
-/* ---------- toast notifications ---------- */
 function showToast(message, type = 'info') {
   const container = document.getElementById('toast-container');
   if (!container) return;
@@ -332,7 +327,6 @@ function showToast(message, type = 'info') {
 // Global assignment
 window.showToast = showToast;
 
-/* ---------- favorites ---------- */
 function loadFavorites() {
   const favorites = JSON.parse(localStorage.getItem('novaPulseFavorites')) || [];
   const container = document.getElementById('favoriteCities');
