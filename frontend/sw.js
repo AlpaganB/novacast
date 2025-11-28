@@ -1,12 +1,12 @@
 const CACHE_NAME = 'novacast-v1.4.2';
 const urlsToCache = [
-    '/',
-    '/index.html',
-    '/styles.css',
-    '/script.js',
-    '/IMG_5959.webp',
-    '/Colorway=2-Color White@3x.png',
-    '/Colorway=1-Color Black@3x.png'
+    './',
+    './index.html',
+    './styles.css',
+    './script.js',
+    './IMG_5959.webp',
+    './Colorway=2-Color White@3x.png',
+    './Colorway=1-Color Black@3x.png'
 ];
 
 self.addEventListener('install', event => {
@@ -40,31 +40,31 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
     const { request } = event;
 
-    
+
     if (request.url.includes('/api/')) {
         event.respondWith(
             fetch(request)
-                .catch(() => caches.match(request)) 
+                .catch(() => caches.match(request))
         );
         return;
     }
 
-   
+
     event.respondWith(
         caches.match(request)
             .then(response => {
                 if (response) {
-                    return response; 
+                    return response;
                 }
 
-                
+
                 return fetch(request).then(response => {
-                    
+
                     if (!response || response.status !== 200) {
                         return response;
                     }
 
-                    
+
                     const responseToCache = response.clone();
 
                     caches.open(CACHE_NAME).then(cache => {
@@ -81,8 +81,8 @@ self.addEventListener('fetch', event => {
 self.addEventListener('push', event => {
     const options = {
         body: event.data ? event.data.text() : 'New weather update available',
-        icon: '/IMG_5959.webp',
-        badge: '/IMG_5959.webp',
+        icon: 'IMG_5959.webp',
+        badge: 'IMG_5959.webp',
         vibrate: [200, 100, 200]
     };
 
