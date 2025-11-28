@@ -90,8 +90,8 @@ function determinePrecipitationType(forecast) {
   // Use API provided type if available and reliable, otherwise fallback to local logic
   // The API returns 'rain', 'snow', 'sleet', 'none'
   if (forecast.precip_type) {
-      const typeMap = { 'rain': 'Rain', 'snow': 'Snow', 'sleet': 'Mixed', 'none': 'None' };
-      return typeMap[forecast.precip_type] || 'None';
+    const typeMap = { 'rain': 'Rain', 'snow': 'Snow', 'sleet': 'Mixed', 'none': 'None' };
+    return typeMap[forecast.precip_type] || 'None';
   }
 
   if (p < 30 || mm < 0.1) return 'None';
@@ -120,6 +120,9 @@ function isCacheValid(isoDate) {
 }
 
 function updateCacheStatus(status) {
+  // UI update removed for production cleanliness
+  // Logic remains intact, just not visible to user
+  /*
   const el = document.getElementById('cacheStatus');
   if (!el) return;
 
@@ -132,6 +135,7 @@ function updateCacheStatus(status) {
   } else {
     el.textContent = '';
   }
+  */
 }
 
 async function searchWeather(forceRefresh = false) {
@@ -144,7 +148,7 @@ async function searchWeather(forceRefresh = false) {
   const selectedISO = dateInput.value || isoLocalDate();
 
   if (!city) {
-    alert('Please enter a valid city name.');
+    showToast('Please enter a valid city name.', 'error');
     return;
   }
 
@@ -174,7 +178,7 @@ async function searchWeather(forceRefresh = false) {
 
     if (requestId !== activeRequestId) return;
     if (!location) {
-      alert(`Coordinates for "${city}" not found.`);
+      showToast(`Coordinates for "${city}" not found.`, 'error');
       return;
     }
 
@@ -215,12 +219,12 @@ async function searchWeather(forceRefresh = false) {
     if (targetForecast) {
       updateUI(city, selectedISO, targetForecast);
     } else {
-      alert('Selected date is out of range.');
+      showToast('Selected date is out of range.', 'warning');
     }
 
   } catch (error) {
     console.error('Error:', error);
-    alert(`An error occurred: ${error.message}`);
+    showToast(`An error occurred: ${error.message}`, 'error');
   }
 }
 
@@ -267,7 +271,7 @@ function updateWeatherCard(forecast, customDesc = null) {
 
   // Updated: precip_prob
   document.getElementById('precipitation').textContent = `${forecast.precip_prob ?? '-'}%`;
-  
+
   const precipitationType = determinePrecipitationType(forecast);
   document.getElementById('precipitationType').textContent = precipitationType;
 }
@@ -298,6 +302,33 @@ function togglePlanner() {
   }
 }
 
+/* ---------- toast notifications ---------- */
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+
+  toast.innerHTML = `
+    <span class="toast-message">${message}</span>
+    <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+  `;
+
+  container.appendChild(toast);
+
+  // Auto remove after 4 seconds
+  setTimeout(() => {
+    toast.style.animation = 'fadeOut 0.3s ease-out forwards';
+    toast.addEventListener('animationend', () => {
+      toast.remove();
+    });
+  }, 4000);
+}
+
+// Global assignment
+window.showToast = showToast;
+
 /* ---------- favorites ---------- */
 function loadFavorites() {
   const favorites = JSON.parse(localStorage.getItem('novaPulseFavorites')) || [];
@@ -324,7 +355,7 @@ function loadFavorites() {
 
 function addToFavorites() {
   if (!currentCity) {
-    alert('Please search for a city first');
+    showToast('Please search for a city first', 'error');
     return;
   }
 
@@ -333,9 +364,9 @@ function addToFavorites() {
     favorites.push(currentCity);
     localStorage.setItem('novaPulseFavorites', JSON.stringify(favorites));
     loadFavorites();
-    alert(`${currentCity} added to favorites!`);
+    showToast(`${currentCity} added to favorites!`, 'success');
   } else {
-    alert(`${currentCity} already in favorites`);
+    showToast(`${currentCity} already in favorites`, 'info');
   }
 }
 
@@ -414,4 +445,3 @@ window.togglePlanner = togglePlanner;
 window.addToFavorites = addToFavorites;
 window.selectFavorite = selectFavorite;
 window.removeFavorite = removeFavorite;
-
