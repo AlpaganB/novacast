@@ -44,7 +44,7 @@ Backend: Deploy to Render, Railway, or any Python hosting service.
 Frontend: Deploy to any static hosting (cPanel, Netlify, Vercel, etc.)
 
 #### Configuration
-Before deploying the frontend, update the API URL in script.min.js:
+Before deploying the frontend, update the API URL in script.js:
 ```script.js
 const API_BASE_URL = '[https://your-backend-url.com/api/predict]';
 ```
