@@ -211,18 +211,26 @@ def apply_slope_cap(prev_val: float, candidate: float, cap: float, k=1.0) -> flo
     delta=float(candidate-prev_val); lim=cap*float(k)
     return candidate if abs(delta)<=lim else prev_val+math.copysign(lim, delta)
 
-def _mm_to_prob(mm: float, k: float = 0.9) -> int:
+def _mm_to_prob(mm: float, k: float = 1.5) -> int:
     mm = max(0.0, float(mm))
+    # Increased k from 0.9 to 1.5 to reduce probability for small mm values
     p = 100.0 * (1.0 - math.exp(-mm / max(0.05, k)))
     return int(min(100, max(0, round(p))))
 
 def infer_precip_type(mm: float,
                       tmax: Optional[float]=None,
                       rain_mm: Optional[float]=None,
-                      snow_mm: Optional[float]=None) -> str:
+                      snow_mm: Optional[float]=None,
+                      prob: Optional[int]=None) -> str:
     """Return 'none' | 'rain' | 'snow' | 'sleet'"""
     mm = 0.0 if mm is None else float(mm)
-    if mm < 0.1:
+    
+    # If probability is low, force none
+    if prob is not None and prob < 35:
+        return "none"
+
+    # Increased threshold from 0.1 to 0.25
+    if mm < 0.25:
         return "none"
 
     r = float(rain_mm) if (rain_mm is not None and np.isfinite(rain_mm)) else None
@@ -343,17 +351,18 @@ def forecast_core(lat: float, lon: float, horizon_days: int, debug: bool=False, 
             mm_clim = float(max(0.0, same_day_climo_value(clim_prcp, t, 1)))
             mm = float(0.6*mm_nwp + 0.4*mm_clim)
             if p_nwp is None or not np.isfinite(p_nwp):
-                p = _mm_to_prob(mm, k=0.8)
+                p = _mm_to_prob(mm, k=1.2)
             else:
-                p = int(np.clip(round(0.6*p_nwp + 0.4*_mm_to_prob(mm, k=0.8)), 0, 100))
+                p = int(np.clip(round(0.6*p_nwp + 0.4*_mm_to_prob(mm, k=1.2)), 0, 100))
             rain_nwp = safe_float(nwp.at[t, "NWP_RAIN_MM"]) if "NWP_RAIN_MM" in nwp.columns else None
             snow_nwp = safe_float(nwp.at[t, "NWP_SNOW_MM"]) if "NWP_SNOW_MM" in nwp.columns else None
         else:
             mm = float(max(0.0, same_day_climo_value(clim_prcp, t, 1)))
-            p = _mm_to_prob(mm, k=0.9)
+            # Use higher k for long-term to avoid high probabilities from average rainfall
+            p = _mm_to_prob(mm, k=2.5)
             rain_nwp = None; snow_nwp = None
 
-        ptype = infer_precip_type(mm=mm, tmax=tmax_val, rain_mm=rain_nwp, snow_mm=snow_nwp)
+        ptype = infer_precip_type(mm=mm, tmax=tmax_val, rain_mm=rain_nwp, snow_mm=snow_nwp, prob=p)
 
         row = {
             "date": t.strftime("%Y-%m-%d"),
