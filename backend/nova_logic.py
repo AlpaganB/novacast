@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import requests
 
-VERSION = "novaLogic v1.4.3"
+VERSION = "novaLogic v1.5"
 TZ = "Europe/Istanbul"
 
 try:
@@ -59,7 +59,7 @@ def fetch_openmeteo_daily(lat: float, lon: float, forecast_days: int, past_days:
         "temperature_2m_max","temperature_2m_min",
         "precipitation_sum","precipitation_hours",
         "shortwave_radiation_sum","precipitation_probability_max",
-        "rain_sum","snowfall_sum"  
+        "rain_sum","snowfall_sum","weather_code"
     ])
     params = {
         "latitude": lat, "longitude": lon, "timezone": TZ,
@@ -82,9 +82,31 @@ def fetch_openmeteo_daily(lat: float, lon: float, forecast_days: int, past_days:
         "NWP_SW_RAD_SUM": G("shortwave_radiation_sum"),
         "NWP_RAIN_MM": G("rain_sum"),
         "NWP_SNOW_MM": G("snowfall_sum"),
+        "NWP_CODE": G("weather_code"),
     }, index=idx).sort_index()
     elev = js.get("elevation", None)
     return df, elev
+
+def wmo_code_to_text(code: int) -> str:
+    """Convert WMO weather code to text description"""
+    if code is None: return "Unknown"
+    c = int(code)
+    if c == 0: return "Clear Sky"
+    if c == 1: return "Mainly Clear"
+    if c == 2: return "Partly Cloudy"
+    if c == 3: return "Overcast"
+    if c in (45, 48): return "Foggy"
+    if c in (51, 53, 55): return "Drizzle"
+    if c in (56, 57): return "Freezing Drizzle"
+    if c in (61, 63, 65): return "Rain"
+    if c in (66, 67): return "Freezing Rain"
+    if c in (71, 73, 75): return "Snow"
+    if c == 77: return "Snow Grains"
+    if c in (80, 81, 82): return "Rain Showers"
+    if c in (85, 86): return "Snow Showers"
+    if c == 95: return "Thunderstorm"
+    if c in (96, 99): return "Thunderstorm with Hail"
+    return "Unknown"
 
 @lru_cache(maxsize=16)
 def fetch_era5_daily(lat: float, lon: float, start_date: str, end_date: Optional[str] = None, debug=False):
@@ -226,11 +248,11 @@ def infer_precip_type(mm: float,
     mm = 0.0 if mm is None else float(mm)
     
     # If probability is low, force none
-    if prob is not None and prob < 34:
+    if prob is not None and prob < 35:
         return "none"
 
     # Increased threshold from 0.1 to 0.25
-    if mm < 0.24:
+    if mm < 0.25:
         return "none"
 
     r = float(rain_mm) if (rain_mm is not None and np.isfinite(rain_mm)) else None
@@ -327,11 +349,18 @@ def forecast_core(lat: float, lon: float, horizon_days: int, debug: bool=False, 
 
     rows=[]
     for i, t in enumerate(fut_idx, start=1):
+        weather_desc = "Partly Cloudy" # Default for long term
+        
         if i <= 15 and nwp is not None and (t in nwp.index):
             v = safe_float(nwp.at[t, "NWP_TMAX"])
             if v is not None and np.isfinite(v):
                 tmax_val = float(v)
                 source = "open-meteo-direct"
+                
+                # Get weather code
+                code = safe_float(nwp.at[t, "NWP_CODE"])
+                if code is not None:
+                    weather_desc = wmo_code_to_text(code)
             else:
                 tmax_val = float(base_tmax.loc[t]); source="blend"
         else:
@@ -364,13 +393,25 @@ def forecast_core(lat: float, lon: float, horizon_days: int, debug: bool=False, 
 
         ptype = infer_precip_type(mm=mm, tmax=tmax_val, rain_mm=rain_nwp, snow_mm=snow_nwp, prob=p)
 
+        # Logic for long-term description if not set by API
+        if source == "blend":
+            if p >= 35:
+                weather_desc = f"Chance of {ptype}"
+            else:
+                # Simple logic: if very hot -> Sunny, else Partly Cloudy
+                if tmax_val > 30:
+                    weather_desc = "Sunny"
+                else:
+                    weather_desc = "Partly Cloudy"
+
         row = {
             "date": t.strftime("%Y-%m-%d"),
             "tmax": float(round(tmax_val, 2)),
             "tmax_source": source,
             "precip_mm": float(round(mm, 2)),
             "precip_prob": int(p),
-            "precip_type": ptype
+            "precip_type": ptype,
+            "weather_desc": weather_desc
         }
 
         if emit_components:
