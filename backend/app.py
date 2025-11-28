@@ -7,6 +7,7 @@ import traceback
 import sys
 import os
 
+# Ensure the current directory is in sys.path so we can import nova_logic
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 try:
@@ -37,8 +38,8 @@ class WeatherRequest(BaseModel):
 
 @app.get("/")
 def home():
-    # Serve the frontend main page
-    return FileResponse('frontend/index.html')
+    # Return a simple status message since frontend is hosted separately
+    return {"status": "ok", "message": "NovaCast API is running", "version": VERSION}
 
 @app.post("/api/predict")
 def predict_weather(req: WeatherRequest):
