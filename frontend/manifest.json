@@ -2,14 +2,14 @@
     "name": "NovaCast Weather Forecast",
     "short_name": "NovaCast",
     "description": "Advanced weather forecasting with NASA POWER ensemble & ERA5 data",
-    "start_url": "/",
+    "start_url": ".",
     "display": "standalone",
     "background_color": "#1A1C38",
     "theme_color": "#2979FF",
     "orientation": "portrait-primary",
     "icons": [
         {
-            "src": "/IMG_5959.webp",
+            "src": "IMG_5959.webp",
             "sizes": "512x512",
             "type": "image/webp",
             "purpose": "any maskable"
