@@ -4,7 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Advanced long-term weather forecasting with NASA POWER ensemble data">
+    <meta name="description"
+        content="NovaCast: Advanced AI-powered weather forecasting providing accurate long-term predictions, daily planner recommendations, and climate insights.">
+    <meta name="keywords" content="weather, forecast, AI weather, long-term forecast, climate, NovaCast, meteorology">
+    <meta name="author" content="NovaPulse Team">
     <meta name="theme-color" content="#2979FF">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -40,14 +43,14 @@
 
         <div class="main-content">
             <div class="weather-card">
-                <!-- Empty State Message -->
+                
                 <div class="empty-state-message" id="emptyState">
                     <div class="empty-icon">🌍</div>
                     <h3>Welcome to NovaCast</h3>
                     <p>Enter a city name above to explore the forecast.</p>
                 </div>
 
-                <!-- Weather Data Container (Initially Hidden) -->
+               
                 <div class="weather-data-container" id="weatherData" style="display: none;">
                     <div class="location-info">
                         <div class="city-name" id="cityName">-</div>
@@ -103,7 +106,6 @@
     <div id="toast-container"></div>
     <script src="script.js"></script>
     <script>
-
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js')
@@ -117,5 +119,5 @@
         }
     </script>
 </body>
-</html>
 
+</html>
