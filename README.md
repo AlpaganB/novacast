@@ -46,7 +46,7 @@ Frontend: Deploy to any static hosting (cPanel, Netlify, Vercel, etc.)
 #### Configuration
 Before deploying the frontend, update the API URL in script.min.js:
 ```script.js
-const API_BASE_URL = '[https://your-backend-url.com/api/predict'](https://your-backend-url.com/api/predict');
+const API_BASE_URL = '[https://your-backend-url.com/api/predict'];
 ```
 
 ## Cache Strategy
