@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import requests
 
-VERSION = "novaLogic v1.4.2"
+VERSION = "novaLogic v1.4.3"
 TZ = "Europe/Istanbul"
 
 try:
