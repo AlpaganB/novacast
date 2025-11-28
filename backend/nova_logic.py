@@ -226,11 +226,11 @@ def infer_precip_type(mm: float,
     mm = 0.0 if mm is None else float(mm)
     
     # If probability is low, force none
-    if prob is not None and prob < 35:
+    if prob is not None and prob < 34:
         return "none"
 
     # Increased threshold from 0.1 to 0.25
-    if mm < 0.25:
+    if mm < 0.24:
         return "none"
 
     r = float(rain_mm) if (rain_mm is not None and np.isfinite(rain_mm)) else None
