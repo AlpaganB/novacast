@@ -82,10 +82,12 @@ async function getCoordinates(city) {
 }
 
 function determinePrecipitationType(forecast) {
-  // Updated variable names: precip_mm, precip_prob
+
   const mm = Number(forecast.precip_mm ?? 0);
   const p = Number(forecast.precip_prob ?? 0);
   const tmax = Number(forecast.tmax ?? 0);
+
+  if (p < 35) return 'None';
 
   // Use API provided type if available and reliable, otherwise fallback to local logic
   // The API returns 'rain', 'snow', 'sleet', 'none'
@@ -266,7 +268,8 @@ function updateWeatherCard(forecast, customDesc = null) {
   const oldBadge = weatherDescElement.querySelector('.data-source-badge');
   if (oldBadge) oldBadge.remove();
 
-  let desc = customDesc || '';
+  // Use backend provided description if available, otherwise fallback
+  let desc = customDesc || forecast.weather_desc || 'Partly Cloudy';
   weatherDescElement.textContent = desc;
 
   // Updated: precip_prob
