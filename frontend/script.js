@@ -24,6 +24,7 @@ async function fetchWithDedup(url, options) {
   return promise;
 }
 
+// date helpers
 function isoLocalDate(d = new Date()) {
   return d.toLocaleDateString('en-CA');
 }
@@ -42,6 +43,7 @@ function initializeDateInputs() {
   }
 }
 
+// theme
 function applyInitialTheme() {
   const savedTheme = localStorage.getItem('theme');
   const isDark = savedTheme !== 'light';
@@ -60,6 +62,7 @@ function applyInitialTheme() {
   document.body.classList.toggle('image-background', localStorage.getItem('backgroundType') === 'image');
 }
 
+// geocoding
 async function getCoordinates(city) {
   const geoUrl = `${GEOCODING_API_URL}?name=${encodeURIComponent(city)}&count=1&language=en&format=json`;
 
@@ -100,7 +103,7 @@ function determinePrecipitationType(forecast) {
   return 'None';
 }
 
-/* ---------- cache logic ---------- */
+// cache logic
 function isCacheValid(isoDate) {
   if (!currentForecastData || !currentForecastData.cachedAt) return false;
 
@@ -232,9 +235,8 @@ function refreshForecast() {
   searchWeather(true);
 }
 
-/* ---------- UI updates ---------- */
+// UI updates
 function updateUI(city, isoDate, forecast) {
-  // Hide empty state, show weather data
   const emptyState = document.getElementById('emptyState');
   const weatherData = document.getElementById('weatherData');
 
@@ -276,6 +278,7 @@ function updateWeatherCard(forecast, customDesc = null) {
   document.getElementById('precipitationType').textContent = precipitationType;
 }
 
+// toggles
 function toggleTheme() {
   const isLight = document.body.classList.toggle('light-mode');
   localStorage.setItem('theme', isLight ? 'light' : 'dark');
@@ -301,6 +304,7 @@ function togglePlanner() {
   }
 }
 
+// toast notifications
 function showToast(message, type = 'info') {
   const container = document.getElementById('toast-container');
   if (!container) return;
@@ -327,6 +331,7 @@ function showToast(message, type = 'info') {
 // Global assignment
 window.showToast = showToast;
 
+// favorites
 function loadFavorites() {
   const favorites = JSON.parse(localStorage.getItem('novaPulseFavorites')) || [];
   const container = document.getElementById('favoriteCities');
@@ -382,7 +387,7 @@ function removeFavorite(cityToRemove) {
   loadFavorites();
 }
 
-/* ---------- planner warnings ---------- */
+// planner warnings
 function updatePlannerWarnings(forecast) {
   const container = document.getElementById('warningsContainer');
   if (!container) return;
@@ -395,7 +400,7 @@ function updatePlannerWarnings(forecast) {
     warnings.push({ text: "Sunscreen recommended (High temp)", level: 'success' });
   }
 
-  // Updated: precip_prob
+  // updated: precip_prob
   const p = Number(forecast.precip_prob ?? 0);
   if (p >= 80) {
     warnings.push({ text: "High precipitation! Bring umbrella ☔", level: 'danger' });
@@ -419,22 +424,57 @@ function updatePlannerWarnings(forecast) {
   }
 }
 
-// Initialization
+// initialization
 document.addEventListener('DOMContentLoaded', () => {
   applyInitialTheme();
   initializeDateInputs();
   loadFavorites();
 
-  // Initial Empty State Check
+  // initial Empty State Check
   const emptyState = document.getElementById('emptyState');
   const weatherData = document.getElementById('weatherData');
   if (emptyState && weatherData) {
     emptyState.style.display = 'block';
     weatherData.style.display = 'none';
   }
+
+  showStartupPopup();
 });
 
-// Global window assignments
+// startup popup
+function showStartupPopup() {
+
+  console.log('Attempting to show startup popup');
+  if (localStorage.getItem('startupPopupSeen')) return;
+
+  const popupOverlay = document.createElement('div');
+  popupOverlay.className = 'popup-overlay';
+  popupOverlay.innerHTML = `
+    <div class="popup-content">
+      <div class="popup-icon">🚀</div>
+      <div class="popup-title">Welcome to NovaCast!</div>
+      <div class="popup-text">
+        Since our AI models run on a free tier server, the first prediction might take up to <strong>1 minute</strong> to wake up the system (Cold Start).<br><br>
+        Please be patient, subsequent requests will be much faster! ⚡
+      </div>
+      <button class="popup-close-btn" onclick="closeStartupPopup(this)">Got it, thanks!</button>
+    </div>
+  `;
+  document.body.appendChild(popupOverlay);
+}
+
+function closeStartupPopup(btn) {
+  const overlay = btn.closest('.popup-overlay');
+  if (overlay) {
+    overlay.style.animation = 'fadeOut 0.3s ease-out forwards';
+    overlay.addEventListener('animationend', () => {
+      overlay.remove();
+      localStorage.setItem('startupPopupSeen', 'true');
+    });
+  }
+}
+
+// global window assignments
 window.searchWeather = searchWeather;
 window.refreshForecast = refreshForecast;
 window.toggleTheme = toggleTheme;
@@ -442,3 +482,4 @@ window.togglePlanner = togglePlanner;
 window.addToFavorites = addToFavorites;
 window.selectFavorite = selectFavorite;
 window.removeFavorite = removeFavorite;
+window.closeStartupPopup = closeStartupPopup;
