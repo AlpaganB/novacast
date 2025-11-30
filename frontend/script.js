@@ -444,7 +444,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // startup popup
 function showStartupPopup() {
 
-  console.log('Attempting to show startup popup');
   if (localStorage.getItem('startupPopupSeen')) return;
 
   const popupOverlay = document.createElement('div');
@@ -483,3 +482,4 @@ window.addToFavorites = addToFavorites;
 window.selectFavorite = selectFavorite;
 window.removeFavorite = removeFavorite;
 window.closeStartupPopup = closeStartupPopup;
+
