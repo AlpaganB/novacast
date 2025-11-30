@@ -123,7 +123,7 @@ function isCacheValid(isoDate) {
 
 function updateCacheStatus(status) {
   // UI update removed for production cleanliness
-  // Logic remains intact, just not visible to user
+  // For testing **
   /*
   const el = document.getElementById('cacheStatus');
   if (!el) return;
@@ -482,4 +482,5 @@ window.addToFavorites = addToFavorites;
 window.selectFavorite = selectFavorite;
 window.removeFavorite = removeFavorite;
 window.closeStartupPopup = closeStartupPopup;
+
 
