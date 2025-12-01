@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import requests
 
-VERSION = "novaLogic v1.5.1"
+VERSION = "novaLogic v1.5.2"
 TZ = "auto"
 
 try:
@@ -32,7 +32,7 @@ def dprint(msg, dbg=False):
     if dbg:
         print(str(msg), flush=True)
 
-UA = {"User-Agent": "novaLogic/1.5.1 (contact: alpagan@novacast.space)"}
+UA = {"User-Agent": "novaLogic/1.5.2 (contact: alpagan@novacast.space)"}
 
 def http_get_json(url, params=None, timeout=45, retries=3, backoff=1.25, debug=False):
     hdr = {"Accept":"application/json", **UA}
@@ -71,8 +71,9 @@ def fetch_openmeteo_daily(lat: float, lon: float, forecast_days: int, past_days:
     idx = pd.to_datetime(js["daily"]["time"])
     d = js["daily"]
     def G(k):
-        v=d.get(k); 
-        return v if v is not None else [None]*len(idx)
+        v=d.get(k)
+        return v if v is not None and len(v) == len(idx) else [None]*len(idx)
+    
     df = pd.DataFrame({
         "NWP_TMAX": G("temperature_2m_max"),
         "NWP_TMIN": G("temperature_2m_min"),
@@ -235,7 +236,6 @@ def apply_slope_cap(prev_val: float, candidate: float, cap: float, k=1.0) -> flo
 
 def _mm_to_prob(mm: float, k: float = 1.5) -> int:
     mm = max(0.0, float(mm))
-    # Increased k from 0.9 to 1.5 to reduce probability for small mm values
     p = 100.0 * (1.0 - math.exp(-mm / max(0.05, k)))
     return int(min(100, max(0, round(p))))
 
@@ -247,11 +247,9 @@ def infer_precip_type(mm: float,
     """Return 'none' | 'rain' | 'snow' | 'sleet'"""
     mm = 0.0 if mm is None else float(mm)
     
-    # If probability is low, force none
     if prob is not None and prob < 35:
         return "none"
 
-    # Increased threshold from 0.1 to 0.25
     if mm < 0.25:
         return "none"
 
@@ -287,27 +285,22 @@ def forecast_core(lat: float, lon: float, horizon_days: int, debug: bool=False, 
     if era is None or era.empty:
         if power is None or power.empty:
             raise RuntimeError("Neither ERA5 nor NASA POWER data available.")
-        # Use only POWER data
         tmax_hist = pd.to_numeric(power["POWER_TMAX"], errors="coerce")
         prcp_hist = pd.to_numeric(power["POWER_PRCP"], errors="coerce").fillna(0.0)
         data_source = "NASA POWER only"
     elif power is not None and not power.empty:
-        # Blend both sources for better accuracy
         era_tmax = pd.to_numeric(era["ERA5_TMAX"], errors="coerce")
         power_tmax = pd.to_numeric(power["POWER_TMAX"], errors="coerce")
         
-        # Merge on common dates
         combined = pd.concat([era_tmax, power_tmax], axis=1, join='outer')
         combined.columns = ['era', 'power']
         
-        # Ensemble: average where both available, otherwise use available source
         tmax_hist = combined.apply(
             lambda row: (0.5 * row['era'] + 0.5 * row['power']) if pd.notna(row['era']) and pd.notna(row['power'])
                         else (row['era'] if pd.notna(row['era']) else row['power']),
             axis=1
         )
         
-        # Same for precipitation
         era_prcp = pd.to_numeric(era["ERA5_PRCP"], errors="coerce").fillna(0.0)
         power_prcp = pd.to_numeric(power["POWER_PRCP"], errors="coerce").fillna(0.0)
         combined_prcp = pd.concat([era_prcp, power_prcp], axis=1, join='outer')
@@ -319,7 +312,6 @@ def forecast_core(lat: float, lon: float, horizon_days: int, debug: bool=False, 
         )
         data_source = "ERA5 + NASA POWER ensemble"
     else:
-        # Use only ERA5
         tmax_hist = pd.to_numeric(era["ERA5_TMAX"], errors="coerce")
         prcp_hist = pd.to_numeric(era["ERA5_PRCP"], errors="coerce").fillna(0.0)
         data_source = "ERA5 only"
@@ -349,15 +341,13 @@ def forecast_core(lat: float, lon: float, horizon_days: int, debug: bool=False, 
 
     rows=[]
     for i, t in enumerate(fut_idx, start=1):
-        weather_desc = "Partly Cloudy" # Default for long term
+        weather_desc = "Partly Cloudy" 
         
         if i <= 15 and nwp is not None and (t in nwp.index):
             v = safe_float(nwp.at[t, "NWP_TMAX"])
             if v is not None and np.isfinite(v):
                 tmax_val = float(v)
                 source = "open-meteo-direct"
-                
-                # Get weather code
                 code = safe_float(nwp.at[t, "NWP_CODE"])
                 if code is not None:
                     weather_desc = wmo_code_to_text(code)
@@ -387,26 +377,27 @@ def forecast_core(lat: float, lon: float, horizon_days: int, debug: bool=False, 
             snow_nwp = safe_float(nwp.at[t, "NWP_SNOW_MM"]) if "NWP_SNOW_MM" in nwp.columns else None
         else:
             mm = float(max(0.0, same_day_climo_value(clim_prcp, t, 1)))
-            # Use higher k for long-term to avoid high probabilities from average rainfall
             p = _mm_to_prob(mm, k=2.5)
             rain_nwp = None; snow_nwp = None
 
         ptype = infer_precip_type(mm=mm, tmax=tmax_val, rain_mm=rain_nwp, snow_mm=snow_nwp, prob=p)
 
-        # Logic for long-term description if not set by API
         if source == "blend":
             if p >= 35:
                 weather_desc = f"Chance of {ptype}"
             else:
-                # Simple logic: if very hot -> Sunny, else Partly Cloudy
                 if tmax_val > 30:
                     weather_desc = "Sunny"
                 else:
                     weather_desc = "Partly Cloudy"
 
+        climo_for_day = same_day_climo_value(clim_tmax, t, 0)
+        anomaly_val = tmax_val - climo_for_day
+
         row = {
             "date": t.strftime("%Y-%m-%d"),
             "tmax": float(round(tmax_val, 2)),
+            "anomaly": float(round(anomaly_val, 2)), 
             "tmax_source": source,
             "precip_mm": float(round(mm, 2)),
             "precip_prob": int(p),
@@ -441,7 +432,7 @@ def forecast_core(lat: float, lon: float, horizon_days: int, debug: bool=False, 
 def build_parser():
     ap = argparse.ArgumentParser(
         prog="nova_logic",
-        description="Minimal daily Tmax forecast service (first 15d direct Open-Meteo, then climo/anomaly blend)."
+        description="Minimal daily Tmax forecast service with Anomaly detection."
     )
     ap.add_argument("--lat", type=float, required=True, help="Latitude")
     ap.add_argument("--lon", type=float, required=True, help="Longitude")
@@ -467,7 +458,7 @@ def main():
         if args.out_json:
             with open(args.out_json, "w", encoding="utf-8") as f: f.write(txt + "\n")
         if args.export_csv:
-            pd.DataFrame(rows).to_csv(args.export_csv, index=False)
+            pd.DataFrame(rows).to_csv(args.export_csv, index=False, encoding="utf-8-sig")
         if args.print_table:
             print(pd.DataFrame(rows).to_string(index=False))
     except Exception as e:
