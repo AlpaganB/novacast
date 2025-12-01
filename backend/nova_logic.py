@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import requests
 
-VERSION = "novaLogic v1.5.2"
+VERSION = "novaLogic v1.5.3"
 TZ = "auto"
 
 try:
@@ -32,7 +32,7 @@ def dprint(msg, dbg=False):
     if dbg:
         print(str(msg), flush=True)
 
-UA = {"User-Agent": "novaLogic/1.5.2 (contact: alpagan@novacast.space)"}
+UA = {"User-Agent": "novaLogic/1.5.3 (contact: alpagan@novacast.space)"}
 
 def http_get_json(url, params=None, timeout=45, retries=3, backoff=1.25, debug=False):
     hdr = {"Accept":"application/json", **UA}
@@ -219,9 +219,20 @@ def same_day_climo_value(clim_by_doy: pd.Series, t: pd.Timestamp, day_window: in
     return float(np.mean(vals))
 
 def warming_offset(idx: pd.DatetimeIndex, per_decade=0.3, baseline_year=2020.5):
-    per_year=float(per_decade)/10.0
-    years_frac=idx.year+(idx.dayofyear/365.25)
-    return pd.Series((years_frac-baseline_year)*per_year, index=idx, dtype=float)
+
+    monthly_coeffs = {
+        1: 0.325, 2: 0.325, 3: 0.275,
+        4: 0.225, 5: 0.225, 6: 0.275,
+        7: 0.375, 8: 0.425, 9: 0.375,
+        10: 0.325, 11: 0.275, 12: 0.325
+    }
+
+    coeffs = pd.Series(idx.month, index=idx).map(monthly_coeffs).fillna(per_decade)
+    
+    per_year = coeffs / 10.0
+    years_frac = idx.year + (idx.dayofyear / 365.25)
+    
+    return pd.Series((years_frac - baseline_year) * per_year, index=idx, dtype=float)
 
 def slope_caps_by_month(ts: pd.Series) -> pd.Series:
     df=pd.DataFrame({"v":pd.to_numeric(ts, errors="coerce")}).dropna()
@@ -397,7 +408,7 @@ def forecast_core(lat: float, lon: float, horizon_days: int, debug: bool=False, 
         row = {
             "date": t.strftime("%Y-%m-%d"),
             "tmax": float(round(tmax_val, 2)),
-            "anomaly": float(round(anomaly_val, 2)), 
+            "anomaly": float(round(anomaly_val, 2)), # Change in expected max temperature (for testing purposes)
             "tmax_source": source,
             "precip_mm": float(round(mm, 2)),
             "precip_prob": int(p),
@@ -469,4 +480,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
