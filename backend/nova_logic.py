@@ -159,7 +159,6 @@ def fetch_nasa_power_daily(lat: float, lon: float, start_date: str, end_date: Op
     if "T2M_MAX" not in params_data or "PRECTOTCORR" not in params_data:
         return None
     
-    # Parse dates and create dataframe
     tmax_data = params_data["T2M_MAX"]
     prcp_data = params_data["PRECTOTCORR"]
     
@@ -292,7 +291,7 @@ def forecast_core(lat: float, lon: float, horizon_days: int, debug: bool=False, 
     era = fetch_era5_daily(lat, lon, start_date="2015-01-01", debug=debug)
     power = fetch_nasa_power_daily(lat, lon, start_date="2015-01-01", debug=debug)
     
-    # Use ensemble approach: prefer ERA5 but blend with POWER if available
+    # Ensemble approach (prefer ERA5 but blend with POWER if available)
     if era is None or era.empty:
         if power is None or power.empty:
             raise RuntimeError("Neither ERA5 nor NASA POWER data available.")
@@ -469,7 +468,7 @@ def main():
         if args.out_json:
             with open(args.out_json, "w", encoding="utf-8") as f: f.write(txt + "\n")
         if args.export_csv:
-            pd.DataFrame(rows).to_csv(args.export_csv, index=False, encoding="utf-8-sig")
+            pd.DataFrame(rows).to_csv(args.export_csv, index=False, encoding="utf-8-sig") # CSV Utf-8-sig support
         if args.print_table:
             print(pd.DataFrame(rows).to_string(index=False))
     except Exception as e:
