@@ -1,4 +1,4 @@
-const CACHE_NAME = 'novacast-v1.4.5';
+const CACHE_NAME = 'novacast-v1.4.6';
 const urlsToCache = [
     './',
     './index.html',
@@ -90,3 +90,4 @@ self.addEventListener('push', event => {
         self.registration.showNotification('NovaCast Weather Alert', options)
     );
 });
+
