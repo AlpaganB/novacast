@@ -117,6 +117,8 @@ To optimize API usage while maintaining data integrity, NovaCast employs a time-
 
 This project is distributed under the **MIT License**. See `LICENSE` for more information.
 
+---
+
 ## Acknowledgments
 
 *   **NASA POWER Project**: For providing comprehensive solar and meteorological data sets.
