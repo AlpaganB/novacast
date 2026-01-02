@@ -4,7 +4,7 @@
 
 **A modern weather forecasting application built for the NASA Space Apps Challenge 2025.**
 
-NovaCast utilizes advanced ensemble prediction methods combining **NASA POWER** and **ERA5** data to deliver data-driven long range weather trends up to **1.5 years ahead**.
+NovaCast utilizes advanced ensemble prediction methods combining **NASA POWER** and **ERA5** data to deliver data driven long range weather trends up to **1.5 years ahead**.
 
 [![NASA Space Apps](https://img.shields.io/badge/Challenge-NASA_Space_Apps_2025-005288?style=flat&logo=nasa&logoColor=white)](https://www.spaceappschallenge.org/)
 [![Team](https://img.shields.io/badge/Team-NovaPulse-purple?style=flat)](https://novapulse.com.tr)
@@ -121,7 +121,6 @@ This project is distributed under the **MIT License**. See `LICENSE` for more in
 
 *   **NASA POWER Project**: For providing comprehensive solar and meteorological data sets.
 *   **Open Meteo**: For historical weather reanalysis data.
-*   **NASA Space Apps Challenge**: For fostering innovation and collaboration.
 
 ---
 
