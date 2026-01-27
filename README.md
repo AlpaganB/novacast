@@ -30,14 +30,16 @@ NovaCast utilizes advanced ensemble prediction methods combining **NASA POWER** 
 
 ## System Architecture
 
+
 ### Technology Stack
 
 | Component | Technology | Description |
-| :--- | :--- |
+| :--- | :--- | :--- |
 | **Backend** | ![FastAPI](https://img.shields.io/badge/-FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white) | Asynchronous API handling for high concurrency. |
 | **Data Engine** | ![Pandas](https://img.shields.io/badge/-Pandas-150458?style=flat-square&logo=pandas&logoColor=white) ![NumPy](https://img.shields.io/badge/-NumPy-013243?style=flat-square&logo=numpy&logoColor=white) | Vectorized data processing and statistical blending. |
 | **Frontend** | ![JavaScript](https://img.shields.io/badge/-Vanilla_JS-F7DF1E?style=flat-square&logo=javascript&logoColor=black) | High-performance, zero-dependency implementation. |
 | **Styling** | ![CSS3](https://img.shields.io/badge/-CSS3-1572B6?style=flat-square&logo=css3&logoColor=white) | Custom Glassmorphism design system. |
+
 
 ### Data Pipeline
 
@@ -87,7 +89,7 @@ The frontend utilizes standard web technologies and requires no compilation.
 
 ### License
 
-This project is licensed under the **MIT License**.
+This project is licensed under the [**MIT License**](LICENSE).
 
 ### Acknowledgments
 
