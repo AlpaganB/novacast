@@ -213,7 +213,14 @@ async function searchWeather(forceRefresh = false) {
         if (targetForecast) {
             updateUI(city, selectedISO, targetForecast);
         } else {
-            showToast('Selected date is out of range.', 'warning');
+            const availableDates = forecastList.map(f => f.date);
+            const rangeStart = availableDates[0];
+            const rangeEnd = availableDates[availableDates.length - 1];
+            console.warn(`[ERROR] Date ${selectedISO} not found in forecast list.`);
+            console.warn(`[DEBUG] Received ${forecastList.length} days. Range: ${rangeStart} to ${rangeEnd}`);
+            console.warn(`[DEBUG] First 5 dates:`, availableDates.slice(0, 5));
+
+            showToast(`Selected date (${selectedISO}) is out of range. Available: ${rangeStart} to ${rangeEnd}`, 'warning');
         }
 
     } catch (error) {

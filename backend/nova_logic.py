@@ -742,10 +742,12 @@ async def forecast_core(lat: float, lon: float, horizon_days: int, reference_dat
     df_fut['anomaly'] = df_fut['anomaly'].round(2)
     df_fut['precip_mm'] = df_fut['mm_final'].round(2)
     
-    # Reset index to get date
-    out_df = df_fut.reset_index().rename(columns={'index': 'date'})
-    out_df['date'] = out_df['date'].dt.strftime("%Y-%m-%d")
-    out_df['tmax_source'] = out_df['source'] # Rename for consistency if needed or keep source
+    # Reset index to get date - ROBUST METHOD
+    # Instead of rename, explicitly assign from index
+    out_df = df_fut.copy()
+    out_df['date'] = out_df.index.strftime("%Y-%m-%d")
+    out_df = out_df.reset_index(drop=True) # Drop original index to be clean
+    out_df['tmax_source'] = out_df['source']
 
     # Selection
     cols = ['date', 'tmax', 'tmin', 'anomaly', 'tmax_source', 'precip_mm', 'precip_prob', 'precip_type', 'weather_desc']
