@@ -431,11 +431,13 @@ function updateBackground(forecast) {
 
     // Priority order: Storm > Snow > Rain > Cloudy > Sunny > Default
     // Sunny also triggers on warm days (25°C+) without bad weather
+    // Snow also triggers on very cold days (<= -3°C)
     const isWarm = tmax >= 25;
+    const isCold = tmax <= -3;
 
     if (desc.includes('thunder') || desc.includes('storm')) {
         gradient = 'var(--bg-gradient-storm)';
-    } else if (pType.includes('snow') || desc.includes('snow') || desc.includes('ice')) {
+    } else if (pType.includes('snow') || desc.includes('snow') || desc.includes('ice') || isCold) {
         gradient = 'var(--bg-gradient-snow)';
     } else if (pType.includes('rain') || desc.includes('rain') || desc.includes('drizzle') || desc.includes('shower')) {
         gradient = 'var(--bg-gradient-rain)';

@@ -108,15 +108,13 @@ header {
 }
 
 .team-logo {
-    height: 90px;
-    width: 90px;
+    height: 70px;
+    width: 70px;
     border-radius: 50%;
     object-fit: cover;
     margin-right: 15px;
-    transition: filter 0.3s ease;
-    /* Soften the look: Remove harsh border, add glow */
-    border: none;
-    box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    transition: var(--transition-smooth);
 }
 
 /* Add spacing between the list and the button in the Favorites card */
