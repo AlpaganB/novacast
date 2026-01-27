@@ -26,8 +26,15 @@
 
     /* Dynamic Gradients */
     --bg-gradient-default: radial-gradient(circle at top right, #1e293b, #0f172a);
-    --bg-gradient-sunny: linear-gradient(135deg, #3b82f6 0%, #0f172a 100%);
-    --bg-gradient-rain: linear-gradient(135deg, #334155 0%, #0f172a 100%);
+    --bg-gradient-sunny: linear-gradient(135deg, #1e40af 0%, #0f172a 100%);
+    /* Darker blue for readable white text */
+    --bg-gradient-rain: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    --bg-gradient-snow: linear-gradient(135deg, #334155 0%, #1e293b 50%, #0f172a 100%);
+    /* Cool gray-blue */
+    --bg-gradient-storm: linear-gradient(135deg, #312e81 0%, #1e1b4b 50%, #0f172a 100%);
+    /* Deep purple */
+    --bg-gradient-cloudy: linear-gradient(135deg, #374151 0%, #1f2937 50%, #0f172a 100%);
+    /* Neutral gray */
 
     --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -49,6 +56,9 @@ body {
     background-attachment: fixed;
     background-size: cover;
     transition: background-image 1s ease-in-out;
+    /* Sticky Footer Setup */
+    display: flex;
+    flex-direction: column;
 }
 
 /* Scrollbar */
@@ -70,20 +80,13 @@ body {
 }
 
 .container {
-    max-width: 1000px;
-    /* Tighter container for pro look */
+    max-width: 1200px;
+    /* Increased from 1000px for wider view */
     margin: 0 auto;
     padding: 40px 20px;
-}
-
-/* Light Mode Overrides (Optional, focusing on Dark first) */
-.light-mode {
-    --text-primary: #1e293b;
-    --text-secondary: #64748b;
-    --glass-bg: rgba(255, 255, 255, 0.75);
-    --glass-border: rgba(255, 255, 255, 0.4);
-    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-    --bg-gradient-default: linear-gradient(135deg, #e2e8f0 0%, #f8fafc 100%);
+    width: 100%;
+    flex: 1;
+    /* Pushes footer down */
 }
 
 header {
@@ -111,7 +114,16 @@ header {
     object-fit: cover;
     margin-right: 15px;
     transition: filter 0.3s ease;
-    border: 2px solid var(--primary-color);
+    /* Soften the look: Remove harsh border, add glow */
+    border: none;
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+}
+
+/* Add spacing between the list and the button in the Favorites card */
+.weather-card .search-btn {
+    width: 100%;
+    /* Make button fill text width or card? Let's keep it fitting content but with margin */
+    margin-top: 20px;
 }
 
 .controls button {
@@ -161,43 +173,52 @@ header {
 .main-content {
     display: grid;
     grid-template-columns: 2fr 1fr;
+    /* Main vs Favorites */
     gap: 25px;
-    align-items: start;
+    /* Ensure cards stretch to equal height */
+    align-items: stretch;
 }
 
+/* Search Container Grid Layout - Perfectly aligned with content below */
 .search-container {
-    display: flex;
-    flex-direction: row;
-    /* Force row */
-    gap: 15px;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    /* Matches .main-content grid */
+    gap: 25px;
+    /* Matches .main-content gap */
     margin-bottom: 40px;
     align-items: center;
+}
+
+.search-group-left {
+    display: flex;
+    gap: 15px;
+    width: 100%;
 }
 
 .search-input,
 .date-input {
     flex-grow: 1;
-    /* Allow them to grow */
     background: rgba(15, 23, 42, 0.6);
     border: 1px solid var(--glass-border);
     color: var(--text-primary);
     padding: 0 20px;
     height: 48px;
     line-height: normal;
-    /* Fix alignment */
     border-radius: var(--border-radius-sm);
     font-family: var(--font-main);
     font-size: 1rem;
     transition: var(--transition-smooth);
     display: block;
     min-width: 0;
-    /* Prevent overflow */
 }
 
-/* Specific width for date input to not be too wide */
+/* Specific width for date input */
 .date-input {
     flex-grow: 0;
-    width: 180px;
+    width: 170px;
+    /* Condensed width */
+    position: relative;
 }
 
 .search-input:focus,
@@ -209,7 +230,6 @@ header {
 }
 
 .search-btn,
-.refresh-btn,
 .controls button {
     background: var(--primary-color);
     color: white;
@@ -224,8 +244,19 @@ header {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
-    /* Don't shrink buttons */
+    /* width: 100%;  <- Removed shared width */
+}
+
+/* Only search button gets full width if needed, or controlled by grid */
+.search-btn {
+    width: 100%;
+}
+
+.controls button {
+    width: auto;
+    /* Ensure header buttons are auto width */
+    min-width: 60px;
+    /* Minimum clickable area */
 }
 
 /* Calendar Icon Fix */
@@ -237,13 +268,16 @@ header {
     /* Make visible */
     filter: invert(1);
     /* White icon */
-    position: absolute;
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 5;
+    /* Remove absolute positioning to restore native hit detection */
+    /* position: absolute; */
+    /* right: 15px; */
+    /* top: 50%; */
+    /* transform: translateY(-50%); */
+    /* z-index: 5; */
     height: 20px;
     width: 20px;
+    margin-left: 10px;
+    /* Space from date text */
 }
 
 /* Remove the fake ::after icon since we fixed the real one */
@@ -251,8 +285,7 @@ header {
     display: none;
 }
 
-.search-btn:hover,
-.refresh-btn:hover {
+.search-btn:hover {
     background: #2979FF;
     /* Slightly darker/richer */
     transform: translateY(-1px);
@@ -297,7 +330,54 @@ header {
     color: var(--text-primary);
 }
 
+.weather-details {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.detail-item {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    /* Comfortable padding */
+    border-radius: 12px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.detail-item.full-width {
+    flex: 1 1 100%;
+}
+
+.detail-item div:first-child {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.detail-item .precip-summary {
+    font-size: 1.4rem;
+    /* Prominent value */
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Spacing for card titles (like Favorite Cities) */
+.weather-card h3 {
+    margin-bottom: 25px;
+    font-size: 1.5rem;
+    color: var(--primary-color);
+}
+
 .favorite-city-item {
+    margin-bottom: 10px;
+    /* Separator spacing */
     padding: 10px;
     background-color: rgba(0, 0, 0, 0.2);
     border-radius: 6px;
@@ -428,8 +508,17 @@ footer {
     margin-top: 50px;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     text-align: center;
-    font-size: 0.8em;
+    font-size: 0.9rem;
+    /* Adjusted balance */
     color: var(--text-color-dark);
+}
+
+/* Add minimum height for vertical balance */
+.weather-card {
+    min-height: 420px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
 }
 
 .footer-content {
@@ -586,15 +675,18 @@ footer {
 }
 
 .empty-state-message h3 {
-    font-size: 1.8em;
+    font-size: 2.2em;
+    /* Increased from 1.8em */
     margin-bottom: 10px;
     color: var(--primary-color);
 }
 
 .empty-state-message p {
-    font-size: 1.1em;
+    font-size: 1.3em;
+    /* Increased from 1.1em */
     color: var(--text-color-dark);
-    max-width: 300px;
+    max-width: 400px;
+    /* Increased max-width to accommodate larger text */
     margin: 0 auto;
 }
 

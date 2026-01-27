@@ -4,8 +4,8 @@
     "description": "Advanced weather forecasting with NASA POWER ensemble & ERA5 data",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#1A1C38",
-    "theme_color": "#2979FF",
+    "background_color": "#0f172a",
+    "theme_color": "#3B82F6",
     "orientation": "portrait-primary",
     "icons": [
         {

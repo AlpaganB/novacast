@@ -38,6 +38,15 @@ function initializeDateInputs() {
         dateInput.min = todayStr;
         dateInput.max = maxStr;
         dateInput.value = todayStr;
+
+        // NEW: Make the whole input clickable to show picker
+        dateInput.addEventListener('click', function () {
+            try {
+                this.showPicker();
+            } catch (e) {
+                console.log('showPicker not supported');
+            }
+        });
     }
 }
 
@@ -60,17 +69,46 @@ function applyInitialTheme() {
     document.body.classList.toggle('image-background', localStorage.getItem('backgroundType') === 'image');
 }
 
-// Geocoding
+// Geocoding - Enhanced with better matching
 async function getCoordinates(city) {
-    const geoUrl = `${GEOCODING_API_URL}?name=${encodeURIComponent(city)}&count=1&language=en&format=json`;
+    // Fetch more results and find best match
+    const geoUrl = `${GEOCODING_API_URL}?name=${encodeURIComponent(city)}&count=10&language=en&format=json`;
 
     try {
         const response = await fetch(geoUrl);
         if (!response.ok) throw new Error(`Geocoding HTTP Error Code: ${response.status}`);
         const data = await response.json();
+
         if (data.results && data.results.length > 0) {
-            const r = data.results[0];
-            return { lat: parseFloat(r.latitude), lon: parseFloat(r.longitude) };
+            // Try to find exact or close match
+            const searchLower = city.toLowerCase().trim();
+
+            // Priority 1: Exact name match
+            let match = data.results.find(r => r.name.toLowerCase() === searchLower);
+
+            // Priority 2: Name starts with search term
+            if (!match) {
+                match = data.results.find(r => r.name.toLowerCase().startsWith(searchLower));
+            }
+
+            // Priority 3: Search term is in name
+            if (!match) {
+                match = data.results.find(r => r.name.toLowerCase().includes(searchLower));
+            }
+
+            // Fallback: First result (but log warning)
+            if (!match) {
+                console.warn(`[GEO] No exact match for "${city}", using first result: ${data.results[0].name}`);
+                match = data.results[0];
+            }
+
+            console.log(`[GEO] Resolved "${city}" → ${match.name} (${match.country || 'Unknown'})`);
+            return {
+                lat: parseFloat(match.latitude),
+                lon: parseFloat(match.longitude),
+                resolvedName: match.name,
+                country: match.country
+            };
         }
         return null;
     } catch (error) {
@@ -135,7 +173,7 @@ async function searchWeather(forceRefresh = false) {
     const selectedISO = dateInput.value || isoLocalDate();
 
     if (!city) {
-        showToast('Please enter a valid city name.', 'error');
+        showToast(currentLang === 'tr' ? 'Lütfen geçerli bir şehir adı girin.' : 'Please enter a valid city name.', 'error');
         return;
     }
 
@@ -165,7 +203,7 @@ async function searchWeather(forceRefresh = false) {
 
         if (requestId !== activeRequestId) return;
         if (!location) {
-            showToast(`Coordinates for "${city}" not found.`, 'error');
+            showToast(currentLang === 'tr' ? `"${city}" için koordinatlar bulunamadı.` : `Coordinates for "${city}" not found.`, 'error');
             return;
         }
 
@@ -201,9 +239,9 @@ async function searchWeather(forceRefresh = false) {
         currentForecastData = {
             daily: forecastList,
             expiresAt: Date.now() + (ttl * 1000), // Calculate absolute expiration time
-            cityName: city
+            cityName: location.resolvedName || city
         };
-        currentCity = city;
+        currentCity = location.resolvedName || city;
 
         const targetForecast = forecastList.find(f => {
             // Updated f.date
@@ -211,21 +249,29 @@ async function searchWeather(forceRefresh = false) {
         });
 
         if (targetForecast) {
-            updateUI(city, selectedISO, targetForecast);
+            updateUI(location.resolvedName || city, selectedISO, targetForecast);
         } else {
             const availableDates = forecastList.map(f => f.date);
-            const rangeStart = availableDates[0];
-            const rangeEnd = availableDates[availableDates.length - 1];
-            console.warn(`[ERROR] Date ${selectedISO} not found in forecast list.`);
-            console.warn(`[DEBUG] Received ${forecastList.length} days. Range: ${rangeStart} to ${rangeEnd}`);
-            console.warn(`[DEBUG] First 5 dates:`, availableDates.slice(0, 5));
+            const rangeStart = availableDates[0] || 'N/A';
+            const rangeEnd = availableDates[availableDates.length - 1] || 'N/A';
 
-            showToast(`Selected date (${selectedISO}) is out of range. Available: ${rangeStart} to ${rangeEnd}`, 'warning');
+            if (forecastList.length === 0) {
+                console.error(`[ERROR] Empty forecast list received for ${city}`);
+                showToast(currentLang === 'tr'
+                    ? `"${city}" için tahmin verisi alınamadı. Lütfen tekrar deneyin.`
+                    : `Could not retrieve forecast data for "${city}". Please try again.`, 'error');
+            } else {
+                console.warn(`[ERROR] Date ${selectedISO} not found in forecast list.`);
+                console.warn(`[DEBUG] Received ${forecastList.length} days. Range: ${rangeStart} to ${rangeEnd}`);
+                showToast(currentLang === 'tr'
+                    ? `Seçilen tarih (${selectedISO}) aralık dışında. Mevcut: ${rangeStart} - ${rangeEnd}`
+                    : `Selected date (${selectedISO}) is out of range. Available: ${rangeStart} to ${rangeEnd}`, 'warning');
+            }
         }
 
     } catch (error) {
         console.error('Error:', error);
-        showToast(`An error occurred: ${error.message}`, 'error');
+        showToast(currentLang === 'tr' ? `Bir hata oluştu: ${error.message}` : `An error occurred: ${error.message}`, 'error');
     }
 }
 
@@ -243,9 +289,16 @@ function updateUI(city, isoDate, forecast) {
     if (weatherData) weatherData.style.display = 'block';
 
     document.getElementById('cityName').textContent = city;
-    document.getElementById('selectedDate').textContent = new Date(isoDate).toLocaleDateString('en-US', {
-        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-    });
+
+    // Date Translation
+    let dateStr = isoDate;
+    if (isoDate) {
+        const d = new Date(isoDate);
+        dateStr = d.toLocaleDateString(currentLang === 'tr' ? 'tr-TR' : 'en-US', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+    }
+    document.getElementById('selectedDate').textContent = dateStr;
     updateWeatherCard(forecast);
     updatePlannerWarnings(forecast);
 }
@@ -254,7 +307,7 @@ function updateWeatherCard(forecast, customDesc = null) {
     if (forecast.tmax === '...' || forecast.tmax === undefined) {
         document.getElementById('temperature').textContent = '...°C';
         document.getElementById('tempLow').textContent = '...';
-        document.getElementById('weatherDesc').textContent = customDesc || 'Loading...';
+        document.getElementById('weatherDesc').textContent = customDesc || (currentLang === 'tr' ? 'Yükleniyor...' : 'Loading...');
         document.getElementById('precipitation').textContent = '- %';
         document.getElementById('precipitationType').textContent = '-';
         return;
@@ -263,9 +316,10 @@ function updateWeatherCard(forecast, customDesc = null) {
     const temp = (forecast.tmax !== 'Error') ? `${Math.round(forecast.tmax)}°C` : 'ERROR';
     document.getElementById('temperature').textContent = temp;
 
-    // NEW: TMIN Display
+    // NEW: TMIN Display with Translation
     if (forecast.tmin !== undefined && forecast.tmin !== null) {
-        document.getElementById('tempLow').textContent = `Night: ${Math.round(forecast.tmin)}°C`;
+        const nightLabel = currentLang === 'tr' ? 'Gece' : 'Night';
+        document.getElementById('tempLow').textContent = `${nightLabel}: ${Math.round(forecast.tmin)}°C`;
     } else {
         document.getElementById('tempLow').textContent = '';
     }
@@ -275,14 +329,57 @@ function updateWeatherCard(forecast, customDesc = null) {
     if (oldBadge) oldBadge.remove();
 
     // Use backend provided description if available, otherwise fallback
-    let desc = customDesc || forecast.weather_desc || 'Partly Cloudy';
+    let desc = customDesc || forecast.weather_desc || (currentLang === 'tr' ? 'Parçalı Bulutlu' : 'Partly Cloudy');
+
+    // Translation Logic
+    const map = weatherMaps[currentLang];
+    if (map) {
+        // Exact match
+        if (map[desc]) {
+            desc = map[desc];
+        } else {
+            // Partial match
+            Object.keys(map).forEach(key => {
+                if (desc.includes(key)) desc = desc.replace(key, map[key]);
+            });
+        }
+    }
     weatherDescElement.textContent = desc;
 
     // Updated precip_prob
-    document.getElementById('precipitation').textContent = `${forecast.precip_prob ?? '-'}%`;
+    // updated precip_prob
+    // Unified Precipitation Display
+    const prob = Math.round(forecast.precip_prob ?? 0);
+    let pType = determinePrecipitationType(forecast);
 
-    const precipitationType = determinePrecipitationType(forecast);
-    document.getElementById('precipitationType').textContent = precipitationType;
+    // Type Inference: If probability is significant but type is missing, infer it
+    if (prob > 15 && (pType === 'None' || pType === 'Clear' || !pType)) {
+        pType = (forecast.tmax < 2) ? 'Snow' : 'Rain';
+    }
+
+    // Translate Type
+    const precipMap = weatherMaps[currentLang];
+    if (precipMap && precipMap[pType]) {
+        pType = precipMap[pType];
+    }
+
+    const summaryEl = document.getElementById('precipSummary');
+    if (summaryEl) {
+        // Display based on probability thresholds - CONCISE format
+        if (prob <= 30) {
+            // 0-30%: No precipitation
+            const clearMsg = currentLang === 'tr' ? '☀️ Yağış beklenmiyor' : '☀️ No precipitation';
+            summaryEl.textContent = clearMsg;
+        } else if (prob <= 50) {
+            // 30-50%: Low chance - show percentage
+            const typeStr = (pType && pType !== 'None' && pType !== 'Clear' && pType !== 'Açık') ? ` ${pType}` : '';
+            summaryEl.textContent = `🌤️ ${prob}%${typeStr}`;
+        } else {
+            // 50%+: High chance - SIMPLE format: "🌧️ 99% Rain"
+            const typeStr = (pType && pType !== 'None' && pType !== 'Clear' && pType !== 'Açık') ? ` ${pType}` : '';
+            summaryEl.textContent = `🌧️ ${prob}%${typeStr}`;
+        }
+    }
 
     // NEW: Update Background based on weather
     updateBackground(forecast);
@@ -295,10 +392,20 @@ function updateBackground(forecast) {
 
     let gradient = 'var(--bg-gradient-default)';
 
-    if (desc.includes('sun') || desc.includes('clear')) {
-        gradient = 'var(--bg-gradient-sunny)';
+    // Priority order: Storm > Snow > Rain > Cloudy > Sunny > Default
+    // Sunny also triggers on warm days (25°C+) without bad weather
+    const isWarm = forecast.tmax >= 25;
+
+    if (desc.includes('thunder') || desc.includes('storm')) {
+        gradient = 'var(--bg-gradient-storm)';
+    } else if (pType.includes('snow') || desc.includes('snow') || desc.includes('ice')) {
+        gradient = 'var(--bg-gradient-snow)';
     } else if (pType.includes('rain') || desc.includes('rain') || mm > 0.5) {
         gradient = 'var(--bg-gradient-rain)';
+    } else if (desc.includes('cloud') || desc.includes('overcast') || desc.includes('fog') || desc.includes('mist')) {
+        gradient = 'var(--bg-gradient-cloudy)';
+    } else if (desc.includes('sun') || desc.includes('clear') || desc.includes('sunny') || isWarm) {
+        gradient = 'var(--bg-gradient-sunny)';
     }
 
     document.body.style.backgroundImage = gradient;
@@ -312,27 +419,105 @@ function toggleTheme() {
     if (themeToggle) themeToggle.textContent = isLight ? '🌙 Dark Mode' : '☀ Light Mode';
 
     // Re-trigger background update in case theme colors change
-    if (currentForecastData && currentForecastData.daily) {
-        // Ideally we would want to re-apply the gradient logic respecting the new theme variables.
-        // But since we use css vars, it updates automatically!
-    }
+
 }
 
-function togglePlanner() {
-    const isPlanner = document.body.classList.toggle('planner-mode');
-    const warnings = document.getElementById('plannerWarnings');
-    warnings.classList.toggle('hidden', !isPlanner);
-    localStorage.setItem('plannerMode', isPlanner);
-    const plannerToggle = document.querySelector('.planner-toggle');
-    if (plannerToggle) plannerToggle.textContent = isPlanner ? '✅ Planner ON' : '📋 Planner Mode';
+// Language & Translation System
+const i18n = {
+    en: {
+        appTitle: "Weather Forecast",
+        enterCity: "Enter city name...",
+        getWeather: "Get Weather",
+        welcomeTitle: "Welcome to NovaCast",
+        welcomeText: "Enter a city name above to explore the forecast.",
+        precipChance: "Precipitation",
+        // precipType removed from UI
+        favCities: "Favorite Cities",
+        addToFav: "Add Current City to Favorites",
+        planRecs: "📋 Plan Recommendations",
+        warnings: {
+            heat: "Extreme Heat Warning. Avoid prolonged exposure. 🔥",
+            warm: "High temperatures expected. ☀️",
+            cold: "Freezing temperatures. Frost likely. ❄️",
+            snow: "Snow or Ice conditions expected. ❄️",
+            rainHigh: "High probability of rain. ☔",
+            rainChance: "Chance of precipitation. 🌧️",
+            perfect: "Excellent weather conditions. 🌤️"
+        }
+    },
+    tr: {
+        appTitle: "Hava Durumu",
+        enterCity: "Şehir ismi giriniz...",
+        getWeather: "Hava Durumu",
+        welcomeTitle: "NovaCast'e Hoşgeldiniz",
+        welcomeText: "Tahmini görmek için yukarıya bir şehir ismi girin.",
+        precipChance: "Yağış Durumu",
+        // precipType removed from UI
+        favCities: "Favori Şehirler",
+        addToFav: "Şehri Favorilere Ekle",
+        planRecs: "📋 Plan Tavsiyeleri",
+        warnings: {
+            heat: "Aşırı Sıcak Uyarısı. Uzun süre dışarıda kalmayınız. 🔥",
+            warm: "Yüksek sıcaklık bekleniyor. ☀️",
+            cold: "Donma tehlikesi. Buzlanma olabilir. ❄️",
+            snow: "Kar veya Buzlanma bekleniyor. ❄️",
+            rainHigh: "Yüksek yağış ihtimali. ☔",
+            rainChance: "Yağış ihtimali var. 🌧️",
+            perfect: "Dışarı aktiviteleri için harika hava! 🌤️"
+        }
+    }
+};
 
-    if (isPlanner && currentForecastData) {
-        const selectedISO = document.getElementById('dateInput').value || isoLocalDate();
-        // Updated daily and date
-        const targetForecast = (currentForecastData.daily || []).find(
-            f => f.date === selectedISO
-        );
-        if (targetForecast) updatePlannerWarnings(targetForecast);
+const weatherMaps = {
+    en: {
+        'Rain': 'Rain', 'Snow': 'Snow', 'Mixed': 'Mixed', 'None': 'Clear', 'Clear': 'Clear',
+        'Night': 'Night', 'Sun': 'Sun', 'Sleet': 'Sleet', 'Ice': 'Ice',
+        'Showers': 'Showers', 'Light': 'Light', 'Heavy': 'Heavy', 'Thunderstorm': 'Thunderstorm',
+        'Cloudy': 'Cloudy', 'Overcast': 'Overcast', 'Partly': 'Partly', 'Fog': 'Fog', 'Mist': 'Mist', 'Drizzle': 'Drizzle'
+    },
+    tr: {
+        'Rain': 'Yağmur', 'Snow': 'Kar', 'Mixed': 'Karla Karışık', 'None': 'Açık', 'Clear': 'Açık',
+        'Night': 'Gece', 'Sun': 'Güneş', 'Sleet': 'Karla Karışık', 'Ice': 'Buzlanma',
+        'Showers': 'Sağanak', 'Light': 'Hafif', 'Heavy': 'Yoğun', 'Thunderstorm': 'Gök Gürültülü',
+        'Cloudy': 'Bulutlu', 'Overcast': 'Kapalı', 'Partly': 'Parçalı', 'Fog': 'Sis', 'Mist': 'Pus', 'Drizzle': 'Çiseleyen'
+    }
+};
+
+let currentLang = 'en'; // Default English
+
+function toggleLanguage() {
+    currentLang = currentLang === 'en' ? 'tr' : 'en';
+    const btn = document.querySelector('.lang-toggle');
+    // Simplified button text as requested
+    if (btn) btn.textContent = currentLang === 'en' ? 'TR' : 'EN';
+
+    applyLanguage();
+}
+
+function applyLanguage() {
+    const t = i18n[currentLang];
+
+    // Update simple text elements
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (t[key]) el.textContent = t[key];
+    });
+
+    // Update placeholders
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (t[key]) el.placeholder = t[key];
+    });
+
+    // Re-render current data to apply deep translations (Date, Desc, Warnings)
+    if (currentForecastData && currentForecastData.daily && currentForecastData.cityName) {
+        // Use the input date value to find the currently displayed day
+        const dateInputVal = document.getElementById('dateInput').value;
+        const target = currentForecastData.daily.find(f => f.date === dateInputVal) || currentForecastData.daily[0];
+
+        if (target) {
+            updateUI(currentForecastData.cityName, target.date, target);
+        }
     }
 }
 
@@ -371,7 +556,8 @@ function loadFavorites() {
     container.innerHTML = '';
 
     if (favorites.length === 0) {
-        container.innerHTML = '<p class="no-favorites">No favorites yet</p>';
+        const noFavMsg = currentLang === 'tr' ? 'Henüz favori yok' : 'No favorites yet';
+        container.innerHTML = `<p class="no-favorites">${noFavMsg}</p>`;
         return;
     }
 
@@ -387,21 +573,33 @@ function loadFavorites() {
 }
 
 function addToFavorites() {
-    if (!currentCity) {
-        showToast('Please search for a city first', 'error');
-        return;
+    let cityToAdd = currentCity;
+
+    // If no active search, check the input field
+    if (!cityToAdd) {
+        const inputVal = document.getElementById('cityInput').value.trim();
+        if (inputVal) {
+            cityToAdd = inputVal;
+        } else {
+            showToast(currentLang === 'tr' ? 'Lütfen önce bir şehir girin.' : 'Please enter a city name first.', 'error');
+            return;
+        }
     }
 
     let favorites = JSON.parse(localStorage.getItem('novaPulseFavorites')) || [];
-    if (!favorites.includes(currentCity)) {
-        favorites.push(currentCity);
+    // Title case formatting
+    cityToAdd = cityToAdd.charAt(0).toUpperCase() + cityToAdd.slice(1);
+
+    if (!favorites.includes(cityToAdd)) {
+        favorites.push(cityToAdd);
         localStorage.setItem('novaPulseFavorites', JSON.stringify(favorites));
         loadFavorites();
-        showToast(`${currentCity} added to favorites!`, 'success');
+        showToast(currentLang === 'tr' ? `${cityToAdd} favorilere eklendi` : `${cityToAdd} added to favorites`, 'success');
     } else {
-        showToast(`${currentCity} already in favorites`, 'info');
+        showToast(currentLang === 'tr' ? 'Bu şehir zaten favorilerde' : 'City already in favorites', 'info');
     }
 }
+
 
 function selectFavorite(city) {
     const cityInput = document.getElementById('cityInput');
@@ -427,20 +625,33 @@ function updatePlannerWarnings(forecast) {
     const warnings = [];
     const currentPrecipType = determinePrecipitationType(forecast);
 
-    if (Number(forecast.tmax) >= 25) {
-        warnings.push({ text: "Sunscreen recommended (High temp)", level: 'success' });
+    const t = i18n[currentLang].warnings;
+
+    // Temperature Warnings
+    const tmax = Number(forecast.tmax);
+    if (tmax >= 35) {
+        warnings.push({ text: t.heat, level: 'danger' });
+    } else if (tmax >= 30) {
+        warnings.push({ text: t.warm, level: 'warning' });
+    } else if (tmax <= 0) {
+        warnings.push({ text: t.cold, level: 'danger' });
     }
 
-    // updated: precip_prob
+    // Precip Warnings
     const p = Number(forecast.precip_prob ?? 0);
-    if (p >= 80) {
-        warnings.push({ text: "High precipitation! Bring umbrella ☔", level: 'danger' });
+    const type = currentPrecipType.toLowerCase();
+
+    if (type.includes('snow') || type.includes('ice') || type.includes('mixed')) {
+        warnings.push({ text: t.snow, level: 'danger' });
+    } else if (p >= 70) {
+        warnings.push({ text: t.rainHigh, level: 'danger' });
+    } else if (p >= 40) {
+        warnings.push({ text: t.rainChance, level: 'warning' });
     }
 
-    if (currentPrecipType === 'Snow' || currentPrecipType === 'Mixed') {
-        warnings.push({ text: "Winter conditions - check roads", level: 'warning' });
-    } else if (p < 30 && currentPrecipType === 'None') {
-        warnings.push({ text: "Perfect day for outdoor activities! ☀", level: 'success' });
+    // Good Weather Bonus
+    if (p < 20 && tmax > 18 && tmax < 28) {
+        warnings.push({ text: t.perfect, level: 'success' });
     }
 
     if (warnings.length === 0) {

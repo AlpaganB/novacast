@@ -27,20 +27,21 @@
         <header>
             <div class="logo">
                 <img src="IMG_5959.webp" alt="NovaPulse Team Logo" class="team-logo">
-                Weather Forecast
+                <span data-i18n="appTitle">Weather Forecast</span>
             </div>
             <div class="controls">
-                <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark Mode</button>
-                <button class="planner-toggle" onclick="togglePlanner()">📋 Plan Mode</button>
+                <button class="lang-toggle" onclick="toggleLanguage()">TR</button>
             </div>
         </header>
 
         <section class="search-section">
             <div class="search-container">
-                <input type="text" class="search-input" placeholder="Enter city name..." id="cityInput">
-                <input type="date" class="date-input" id="dateInput" min="" max="">
-                <button class="search-btn" onclick="searchWeather()">Get Weather</button>
-                <button class="refresh-btn" onclick="refreshForecast()" title="Refresh data">🔄</button>
+                <div class="search-group-left">
+                    <input type="text" class="search-input" placeholder="Enter city name..." id="cityInput"
+                        data-i18n-placeholder="enterCity">
+                    <input type="date" class="date-input" id="dateInput" min="" max="">
+                </div>
+                <button class="search-btn" onclick="searchWeather()" data-i18n="getWeather">Get Weather</button>
             </div>
             <div id="cacheStatus"></div>
         </section>
@@ -50,8 +51,8 @@
 
                 <div class="empty-state-message" id="emptyState">
                     <div class="empty-icon">🌍</div>
-                    <h3>Welcome to NovaCast</h3>
-                    <p>Enter a city name above to explore the forecast.</p>
+                    <h3 data-i18n="welcomeTitle">Welcome to NovaCast</h3>
+                    <p data-i18n="welcomeText">Enter a city name above to explore the forecast.</p>
                 </div>
 
 
@@ -70,29 +71,26 @@
                     </div>
 
                     <div class="weather-details">
-                        <div class="detail-item">
-                            <div>Precipitation Chance</div>
-                            <div id="precipitation">- %</div>
-                        </div>
-                        <div class="detail-item">
-                            <div>Precipitation Type</div>
-                            <div id="precipitationType">-</div>
+                        <div class="detail-item full-width">
+                            <div data-i18n="precipChance">Precipitation</div>
+                            <div id="precipSummary" class="precip-summary">-</div>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="weather-card">
-                <h3>Favorite Cities</h3>
+                <h3 data-i18n="favCities">Favorite Cities</h3>
                 <div class="favorite-cities" id="favoriteCities"></div>
-                <button class="search-btn" onclick="addToFavorites()">
+                <button class="search-btn" onclick="addToFavorites()" data-i18n="addToFav">
                     Add Current City to Favorites
                 </button>
             </div>
         </div>
+        <!-- Warnings moved/hidden based on logic, but keeping struct if needed or removed? User said wasteful. Removing div. -->
 
         <div class="planner-warnings hidden" id="plannerWarnings">
-            <h3>📋 Plan Recommendations</h3>
+            <h3 data-i18n="planRecs">📋 Plan Recommendations</h3>
             <div id="warningsContainer"></div>
         </div>
     </div>
@@ -112,19 +110,7 @@
 
     <div id="toast-container"></div>
     <script src="script.js"></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(registration => {
-                        console.log('ServiceWorker registration successful');
-                    })
-                    .catch(err => {
-                        console.log('ServiceWorker registration failed: ', err);
-                    });
-            });
-        }
-    </script>
+
 </body>
 
 </html>
