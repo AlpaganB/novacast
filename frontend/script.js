@@ -101,21 +101,10 @@ function determinePrecipitationType(forecast) {
 }
 
 // Cache logic
-function isCacheValid(isoDate) {
-    if (!currentForecastData || !currentForecastData.cachedAt) return false;
-
-    const cacheTime = new Date(currentForecastData.cachedAt).getTime();
-    const now = new Date().getTime();
-    const diffHours = (now - cacheTime) / (1000 * 60 * 60);
-
-    const target = new Date(isoDate);
-    const today = new Date(isoLocalDate());
-    const daysDiff = (target - today) / (1000 * 60 * 60 * 24);
-
-    // Gradual cache strategy
-    if (daysDiff <= 3) return diffHours < 1; // Near term: 1 hour
-    if (daysDiff <= 7) return diffHours < 3; // Mid term: 3 hours
-    return diffHours < 6; // Long term: 6 hours
+// Cache logic
+function isCacheValid() {
+    if (!currentForecastData || !currentForecastData.expiresAt) return false;
+    return Date.now() < currentForecastData.expiresAt;
 }
 
 function updateCacheStatus(status) {
@@ -151,15 +140,15 @@ async function searchWeather(forceRefresh = false) {
     }
 
     // Cache check (updated to check .daily)
+    // Cache check
     if (!forceRefresh && currentCity && currentCity.toLowerCase() === city.toLowerCase() && currentForecastData && currentForecastData.daily) {
-        if (isCacheValid(selectedISO)) {
+        if (isCacheValid()) {
             const cachedForecast = currentForecastData.daily.find(f => {
-                // Updated to use .date
                 return f.date === selectedISO;
             });
 
             if (cachedForecast) {
-                console.log(`[CACHE] HIT`);
+                console.log(`[CACHE] HIT (Expires in ${Math.round((currentForecastData.expiresAt - Date.now()) / 60000)} mins)`);
                 updateCacheStatus('HIT');
                 updateUI(city, selectedISO, cachedForecast);
                 return;
@@ -207,9 +196,11 @@ async function searchWeather(forceRefresh = false) {
 
         // Updated rawData.daily
         const forecastList = rawData.daily || [];
+        const ttl = rawData.meta && rawData.meta.ttl_seconds ? rawData.meta.ttl_seconds : 3600;
+
         currentForecastData = {
-            daily: forecastList, // Updated key
-            cachedAt: new Date().toISOString(),
+            daily: forecastList,
+            expiresAt: Date.now() + (ttl * 1000), // Calculate absolute expiration time
             cityName: city
         };
         currentCity = city;
@@ -255,6 +246,7 @@ function updateUI(city, isoDate, forecast) {
 function updateWeatherCard(forecast, customDesc = null) {
     if (forecast.tmax === '...' || forecast.tmax === undefined) {
         document.getElementById('temperature').textContent = '...°C';
+        document.getElementById('tempLow').textContent = '...';
         document.getElementById('weatherDesc').textContent = customDesc || 'Loading...';
         document.getElementById('precipitation').textContent = '- %';
         document.getElementById('precipitationType').textContent = '-';
@@ -263,6 +255,13 @@ function updateWeatherCard(forecast, customDesc = null) {
 
     const temp = (forecast.tmax !== 'Error') ? `${Math.round(forecast.tmax)}°C` : 'ERROR';
     document.getElementById('temperature').textContent = temp;
+
+    // NEW: TMIN Display
+    if (forecast.tmin !== undefined && forecast.tmin !== null) {
+        document.getElementById('tempLow').textContent = `Night: ${Math.round(forecast.tmin)}°C`;
+    } else {
+        document.getElementById('tempLow').textContent = '';
+    }
 
     const weatherDescElement = document.getElementById('weatherDesc');
     const oldBadge = weatherDescElement.querySelector('.data-source-badge');
@@ -277,6 +276,25 @@ function updateWeatherCard(forecast, customDesc = null) {
 
     const precipitationType = determinePrecipitationType(forecast);
     document.getElementById('precipitationType').textContent = precipitationType;
+
+    // NEW: Update Background based on weather
+    updateBackground(forecast);
+}
+
+function updateBackground(forecast) {
+    const desc = (forecast.weather_desc || '').toLowerCase();
+    const pType = (forecast.precip_type || '').toLowerCase();
+    const mm = Number(forecast.precip_mm || 0);
+
+    let gradient = 'var(--bg-gradient-default)';
+
+    if (desc.includes('sun') || desc.includes('clear')) {
+        gradient = 'var(--bg-gradient-sunny)';
+    } else if (pType.includes('rain') || desc.includes('rain') || mm > 0.5) {
+        gradient = 'var(--bg-gradient-rain)';
+    }
+
+    document.body.style.backgroundImage = gradient;
 }
 
 // Toggles
@@ -285,6 +303,12 @@ function toggleTheme() {
     localStorage.setItem('theme', isLight ? 'light' : 'dark');
     const themeToggle = document.querySelector('.theme-toggle');
     if (themeToggle) themeToggle.textContent = isLight ? '🌙 Dark Mode' : '☀ Light Mode';
+
+    // Re-trigger background update in case theme colors change
+    if (currentForecastData && currentForecastData.daily) {
+        // Ideally we would want to re-apply the gradient logic respecting the new theme variables.
+        // But since we use css vars, it updates automatically!
+    }
 }
 
 function togglePlanner() {

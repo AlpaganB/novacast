@@ -12,6 +12,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>NovaCast</title>
+    <!-- Fonts: Outfit (Modern, Geometric) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" type="image/webp" href="IMG_5959.webp">
     <link rel="apple-touch-icon" href="IMG_5959.webp">
@@ -43,14 +47,14 @@
 
         <div class="main-content">
             <div class="weather-card">
-                
+
                 <div class="empty-state-message" id="emptyState">
                     <div class="empty-icon">🌍</div>
                     <h3>Welcome to NovaCast</h3>
                     <p>Enter a city name above to explore the forecast.</p>
                 </div>
 
-               
+
                 <div class="weather-data-container" id="weatherData" style="display: none;">
                     <div class="location-info">
                         <div class="city-name" id="cityName">-</div>
@@ -58,7 +62,10 @@
                     </div>
 
                     <div class="weather-main">
-                        <div class="temperature" id="temperature">-°C</div>
+                        <div class="temp-group">
+                            <div class="temperature" id="temperature">-°C</div>
+                            <div class="temp-low" id="tempLow">↓ -°C</div>
+                        </div>
                         <div class="weather-description" id="weatherDesc">-</div>
                     </div>
 
@@ -121,4 +128,3 @@
 </body>
 
 </html>
-

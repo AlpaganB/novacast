@@ -37,12 +37,12 @@ class WeatherRequest(BaseModel):
     horizon_days: Optional[int] = 150
 
 @app.get("/")
-def home():
+async def home():
     # Return a simple status message since frontend is hosted separately
     return {"status": "ok", "message": "NovaCast API is running", "version": VERSION}
 
 @app.post("/api/predict")
-def predict_weather(req: WeatherRequest):
+async def predict_weather(req: WeatherRequest):
     if forecast_core is None:
         # Raise 503 if the core logic could not be loaded
         raise HTTPException(
@@ -64,8 +64,8 @@ def predict_weather(req: WeatherRequest):
         required_horizon = max(req.horizon_days, horizon_days + 1)
         required_horizon = min(required_horizon, 540) # Limit increased
 
-        # Call the core forecasting function
-        full_output, daily_forecasts = forecast_core(
+        # Call the core forecasting function (Async await)
+        full_output, daily_forecasts = await forecast_core(
             lat=req.lat,
             lon=req.lon,
             horizon_days=required_horizon,
