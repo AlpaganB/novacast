@@ -4,7 +4,7 @@
 
 **A modern weather forecasting application built for the NASA Space Apps Challenge 2025.**
 
-NovaCast utilizes advanced ensemble prediction methods combining **NASA POWER** and **ERA5** data to deliver data-driven long-range weather trends up to **1.5 years ahead**.
+NovaCast utilizes advanced ensemble prediction methods combining **NASA POWER** and **ERA5** data to deliver data driven long range weather forecast up to **1.5 years ahead**.
 
 [![NASA Space Apps](https://img.shields.io/badge/Challenge-NASA_Space_Apps_2025-005288?style=flat&logo=nasa&logoColor=white)](https://www.spaceappschallenge.org/)
 [![Team](https://img.shields.io/badge/Team-NovaPulse-purple?style=flat)](https://novapulse.com.tr)
@@ -23,8 +23,6 @@ NovaCast utilizes advanced ensemble prediction methods combining **NASA POWER** 
 | **Ensemble Engine** | Hybrid blending of **NASA POWER** and **ERA5** datasets for enhanced reliability. |
 | **Global Support** | Seamless coordinate resolution for cities worldwide with localized matching priorities. |
 | **Adaptive Caching** | Tiered strategy (1h/3h/6h) optimization to balance data freshness with API efficiency. |
-| **PWA Support** | Full Progressive Web App capabilities including offline access and installation. |
-| **Theme System** | Intelligent Dark/Light switching and condition-aware glassmorphism effects. |
 
 ---
 
@@ -37,7 +35,7 @@ NovaCast utilizes advanced ensemble prediction methods combining **NASA POWER** 
 | :--- | :--- | :--- |
 | **Backend** | ![FastAPI](https://img.shields.io/badge/-FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white) | Asynchronous API handling for high concurrency. |
 | **Data Engine** | ![Pandas](https://img.shields.io/badge/-Pandas-150458?style=flat-square&logo=pandas&logoColor=white) ![NumPy](https://img.shields.io/badge/-NumPy-013243?style=flat-square&logo=numpy&logoColor=white) | Vectorized data processing and statistical blending. |
-| **Frontend** | ![JavaScript](https://img.shields.io/badge/-Vanilla_JS-F7DF1E?style=flat-square&logo=javascript&logoColor=black) | High-performance, zero-dependency implementation. |
+| **Frontend** | ![JavaScript](https://img.shields.io/badge/-Vanilla_JS-F7DF1E?style=flat-square&logo=javascript&logoColor=black) | High performance, zero dependency implementation. |
 | **Styling** | ![CSS3](https://img.shields.io/badge/-CSS3-1572B6?style=flat-square&logo=css3&logoColor=white) | Custom Glassmorphism design system. |
 
 
@@ -94,7 +92,7 @@ This project is licensed under the [**MIT License**](LICENSE).
 ### Acknowledgments
 
 -   **NASA POWER Project**: Source for global solar and meteorological data.
--   **Open-Meteo**: Support for ERA5 reanalysis and Geocoding services.
+-   **Open Meteo**: Support for ERA5 reanalysis and Geocoding services.
 
 ---
 
