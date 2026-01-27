@@ -717,7 +717,7 @@ async def forecast_core(lat: float, lon: float, horizon_days: int, reference_dat
     mask_sunny = t_max > 30
     desc_logic[mask_sunny] = "Sunny"
     mask_chance = p_prob >= 35
-    desc_logic[mask_chance] = "Chance of " + p_type[mask_chance].astype(str).flatten()
+    desc_logic[mask_chance] = "Chance of " + np.array(p_type[mask_chance]).astype(str)
     # Note: string concatenation in numpy can be tricky if types mismatch
     # using list comprehension for safe string building if needed, but object array usually works
     # Let's fix the capitalization for "Chance of rain" -> "Chance of rain" (p_type is lowercase)
