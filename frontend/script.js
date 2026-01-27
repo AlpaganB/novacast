@@ -69,10 +69,17 @@ function applyInitialTheme() {
     document.body.classList.toggle('image-background', localStorage.getItem('backgroundType') === 'image');
 }
 
-// Geocoding - Enhanced with better matching
+// Geocoding - Enhanced with smarter matching
 async function getCoordinates(city) {
-    // Fetch more results and find best match
     const geoUrl = `${GEOCODING_API_URL}?name=${encodeURIComponent(city)}&count=10&language=en&format=json`;
+
+    // Normalize Turkish characters for comparison
+    const normalize = (str) => str.toLowerCase()
+        .replace(/İ/g, 'i').replace(/I/g, 'i')
+        .replace(/ı/g, 'i').replace(/i̇/g, 'i')
+        .replace(/ş/g, 's').replace(/ç/g, 'c')
+        .replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ö/g, 'o')
+        .trim();
 
     try {
         const response = await fetch(geoUrl);
@@ -80,33 +87,60 @@ async function getCoordinates(city) {
         const data = await response.json();
 
         if (data.results && data.results.length > 0) {
-            // Try to find exact or close match
-            const searchLower = city.toLowerCase().trim();
+            const searchNorm = normalize(city);
 
-            // Priority 1: Exact name match
-            let match = data.results.find(r => r.name.toLowerCase() === searchLower);
+            // Priority 1: Exact name match (normalized)
+            let match = data.results.find(r => normalize(r.name) === searchNorm);
 
-            // Priority 2: Name starts with search term
+            // Priority 2: Find the SHORTEST name that starts with search term
+            // This prevents "İzmirli" matching when "İzmir" exists
             if (!match) {
-                match = data.results.find(r => r.name.toLowerCase().startsWith(searchLower));
+                const startsWithMatches = data.results.filter(r =>
+                    normalize(r.name).startsWith(searchNorm)
+                );
+                if (startsWithMatches.length > 0) {
+                    // Pick the shortest one (most likely the actual city)
+                    startsWithMatches.sort((a, b) => a.name.length - b.name.length);
+                    match = startsWithMatches[0];
+                }
             }
 
-            // Priority 3: Search term is in name
+            // Priority 3: Search term is in name (find shortest)
             if (!match) {
-                match = data.results.find(r => r.name.toLowerCase().includes(searchLower));
+                const includesMatches = data.results.filter(r =>
+                    normalize(r.name).includes(searchNorm)
+                );
+                if (includesMatches.length > 0) {
+                    includesMatches.sort((a, b) => a.name.length - b.name.length);
+                    match = includesMatches[0];
+                }
             }
 
-            // Fallback: First result (but log warning)
+            // Fallback: First result
             if (!match) {
-                console.warn(`[GEO] No exact match for "${city}", using first result: ${data.results[0].name}`);
+                console.warn(`[GEO] No match for "${city}", using first result: ${data.results[0].name}`);
                 match = data.results[0];
             }
 
             console.log(`[GEO] Resolved "${city}" → ${match.name} (${match.country || 'Unknown'})`);
+
+            // Proper capitalization with Turkish support
+            const capitalize = (str) => {
+                // Handle Turkish: i → İ (not I)
+                const first = str.charAt(0);
+                const upper = first === 'i' ? 'İ' : first.toUpperCase();
+                return upper + str.slice(1).toLowerCase();
+            };
+
+            // Use capitalized version of user input if it matches
+            const displayName = (normalize(city) === normalize(match.name))
+                ? capitalize(city.trim())
+                : match.name;
+
             return {
                 lat: parseFloat(match.latitude),
                 lon: parseFloat(match.longitude),
-                resolvedName: match.name,
+                resolvedName: displayName,
                 country: match.country
             };
         }
@@ -150,15 +184,15 @@ function updateCacheStatus(status) {
     /*
     const el = document.getElementById('cacheStatus');
     if (!el) return;
-  
+ 
     if (status === 'HIT') {
-      el.textContent = '⚡ Served from Cache';
-      el.style.color = '#00E676';
+    el.textContent = '⚡ Served from Cache';
+    el.style.color = '#00E676';
     } else if (status === 'MISS') {
-      el.textContent = '🌐 Fetched from API';
-      el.style.color = '#2979FF';
+    el.textContent = '🌐 Fetched from API';
+    el.style.color = '#2979FF';
     } else {
-      el.textContent = '';
+    el.textContent = '';
     }
     */
 }
@@ -389,18 +423,21 @@ function updateBackground(forecast) {
     const desc = (forecast.weather_desc || '').toLowerCase();
     const pType = (forecast.precip_type || '').toLowerCase();
     const mm = Number(forecast.precip_mm || 0);
+    const tmax = Number(forecast.tmax || 0);
+
+    console.log(`[BG] desc="${desc}", pType="${pType}", mm=${mm}, tmax=${tmax}`);
 
     let gradient = 'var(--bg-gradient-default)';
 
     // Priority order: Storm > Snow > Rain > Cloudy > Sunny > Default
     // Sunny also triggers on warm days (25°C+) without bad weather
-    const isWarm = forecast.tmax >= 25;
+    const isWarm = tmax >= 25;
 
     if (desc.includes('thunder') || desc.includes('storm')) {
         gradient = 'var(--bg-gradient-storm)';
     } else if (pType.includes('snow') || desc.includes('snow') || desc.includes('ice')) {
         gradient = 'var(--bg-gradient-snow)';
-    } else if (pType.includes('rain') || desc.includes('rain') || mm > 0.5) {
+    } else if (pType.includes('rain') || desc.includes('rain') || desc.includes('drizzle') || desc.includes('shower')) {
         gradient = 'var(--bg-gradient-rain)';
     } else if (desc.includes('cloud') || desc.includes('overcast') || desc.includes('fog') || desc.includes('mist')) {
         gradient = 'var(--bg-gradient-cloudy)';
@@ -530,9 +567,9 @@ function showToast(message, type = 'info') {
     toast.className = `toast ${type}`;
 
     toast.innerHTML = `
-    <span class="toast-message">${message}</span>
-    <button class="toast-close" onclick="this.parentElement.remove()">×</button>
-  `;
+        <span class="toast-message">${message}</span>
+        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+    `;
 
     container.appendChild(toast);
 
@@ -565,9 +602,9 @@ function loadFavorites() {
         const cityDiv = document.createElement('div');
         cityDiv.className = 'favorite-city-item';
         cityDiv.innerHTML = `
-      <span onclick="selectFavorite('${city}')">${city}</span>
-      <button onclick="removeFavorite('${city}')" class="remove-btn">×</button>
-    `;
+        <span onclick="selectFavorite('${city}')">${city}</span>
+        <button onclick="removeFavorite('${city}')" class="remove-btn">×</button>
+        `;
         container.appendChild(cityDiv);
     });
 }
@@ -691,16 +728,16 @@ function showStartupPopup() {
     const popupOverlay = document.createElement('div');
     popupOverlay.className = 'popup-overlay';
     popupOverlay.innerHTML = `
-    <div class="popup-content">
-      <div class="popup-icon">🚀</div>
-      <div class="popup-title">Welcome to NovaCast!</div>
-      <div class="popup-text">
-        Since our AI models run on a free tier server, the first prediction might take up to <strong>1 minute</strong> to wake up the system (Cold Start).<br><br>
-        Please be patient, subsequent requests will be much faster! ⚡
-      </div>
-      <button class="popup-close-btn" onclick="closeStartupPopup(this)">Got it, thanks!</button>
-    </div>
-  `;
+        <div class="popup-content">
+        <div class="popup-icon">🚀</div>
+        <div class="popup-title">Welcome to NovaCast!</div>
+        <div class="popup-text">
+            Since our AI models run on a free tier server, the first prediction might take up to <strong>1 minute</strong> to wake up the system (Cold Start).<br><br>
+            Please be patient, subsequent requests will be much faster! ⚡
+        </div>
+        <button class="popup-close-btn" onclick="closeStartupPopup(this)">Got it, thanks!</button>
+        </div>
+    `;
     document.body.appendChild(popupOverlay);
 }
 
@@ -719,7 +756,7 @@ function closeStartupPopup(btn) {
 window.searchWeather = searchWeather;
 window.refreshForecast = refreshForecast;
 window.toggleTheme = toggleTheme;
-window.togglePlanner = togglePlanner;
+window.toggleLanguage = toggleLanguage;
 window.addToFavorites = addToFavorites;
 window.selectFavorite = selectFavorite;
 window.removeFavorite = removeFavorite;

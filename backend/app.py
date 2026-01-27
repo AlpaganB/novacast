@@ -84,11 +84,15 @@ async def predict_weather(req: WeatherRequest):
         print(f"✓ Returning {len(daily_forecasts)} days of data")
         return {"daily": daily_forecasts}
 
-    except ValueError:
-        # Handle incorrect date format
+    except ValueError as ve:
+        # Handle incorrect date format OR ValueError from forecast_core
+        print("="*50)
+        print(f"❌ ValueError caught: {str(ve)}")
+        print(traceback.format_exc())
+        print("="*50)
         raise HTTPException(
             status_code=400,
-            detail="Incorrect target_date format. Expected format: YYYYMMDD"
+            detail=f"Data processing error: {str(ve)}"
         )
     except HTTPException as http_e:
         # Re-raise explicit HTTPExceptions
