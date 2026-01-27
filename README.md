@@ -97,5 +97,5 @@ This project is licensed under the [**MIT License**](LICENSE).
 ---
 
 <div align="center">
-<b>NovaPulse Team</b> &copy; 2025
+<b>NovaPulse</b> &copy; 2026
 
