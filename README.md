@@ -4,47 +4,40 @@
 
 **A modern weather forecasting application built for the NASA Space Apps Challenge 2025.**
 
-NovaCast utilizes advanced ensemble prediction methods combining **NASA POWER** and **ERA5** data to deliver data driven long range weather trends up to **1.5 years ahead**.
+NovaCast utilizes advanced ensemble prediction methods combining **NASA POWER** and **ERA5** data to deliver data-driven long-range weather trends up to **1.5 years ahead**.
 
 [![NASA Space Apps](https://img.shields.io/badge/Challenge-NASA_Space_Apps_2025-005288?style=flat&logo=nasa&logoColor=white)](https://www.spaceappschallenge.org/)
 [![Team](https://img.shields.io/badge/Team-NovaPulse-purple?style=flat)](https://novapulse.com.tr)
+[![Version](https://img.shields.io/badge/Version-1.5.5-blue?style=flat)](index.html)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat)](LICENSE)
-[![Python](https://img.shields.io/badge/Backend-FastAPI-009688?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![JS](https://img.shields.io/badge/Frontend-Vanilla_JS-F7DF1E?style=flat&logo=javascript&logoColor=black)]()
 
 **[View Website](https://novacast.space)** &nbsp;•&nbsp; **[Report Bug](https://github.com/AlpaganB/novacast/issues)**
 
 </div>
 
----
-
-## Overview
-
-**NovaCast** bridges the gap between historical climate data and future planning. By integrating satellite based observations from NASA POWER with ERA5 reanalysis data, our ensemble engine provides robust long-range weather insights essential for agricultural planning, event scheduling, and resource management.
-
-### Key Features
+## Core Capabilities
 
 | Feature | Description |
 | :--- | :--- |
 | **Long Range Vision** | Extended predictions up to **540 days** (1.5 years) utilizing ensemble forecasting. |
-| **Ensemble Engine** | Hybrid blending (50/50) of **NASA POWER** and **ERA5** datasets for enhanced reliability. |
+| **Ensemble Engine** | Hybrid blending of **NASA POWER** and **ERA5** datasets for enhanced reliability. |
+| **Global Support** | Seamless coordinate resolution for cities worldwide with localized matching priorities. |
 | **Adaptive Caching** | Tiered strategy (1h/3h/6h) optimization to balance data freshness with API efficiency. |
 | **PWA Support** | Full Progressive Web App capabilities including offline access and installation. |
-| **Planner Mode** | Data driven activity recommendations and location management. |
-| **User Experience** | Dark/Light theme switching with an accessible interface. |
+| **Theme System** | Intelligent Dark/Light switching and condition-aware glassmorphism effects. |
 
 ---
 
-## Architecture
+## System Architecture
 
 ### Technology Stack
 
 | Component | Technology | Description |
-| :--- | :--- | :--- |
-| **Backend** | ![FastAPI](https://img.shields.io/badge/-FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white) | Asynchronous API handling for high concurrency requests. |
-| **Data Engine** | ![Pandas](https://img.shields.io/badge/-Pandas-150458?style=flat-square&logo=pandas&logoColor=white) ![NumPy](https://img.shields.io/badge/-NumPy-013243?style=flat-square&logo=numpy&logoColor=white) | Optimized ensemble calculation and data processing. |
-| **Frontend** | ![JavaScript](https://img.shields.io/badge/-Vanilla_JS-F7DF1E?style=flat-square&logo=javascript&logoColor=black) | Lightweight, performance focused implementation. |
-| **Styling** | ![CSS3](https://img.shields.io/badge/-CSS3-1572B6?style=flat-square&logo=css3&logoColor=white) | Responsive Grid layout with Glassmorphism design system. |
+| :--- | :--- |
+| **Backend** | ![FastAPI](https://img.shields.io/badge/-FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white) | Asynchronous API handling for high concurrency. |
+| **Data Engine** | ![Pandas](https://img.shields.io/badge/-Pandas-150458?style=flat-square&logo=pandas&logoColor=white) ![NumPy](https://img.shields.io/badge/-NumPy-013243?style=flat-square&logo=numpy&logoColor=white) | Vectorized data processing and statistical blending. |
+| **Frontend** | ![JavaScript](https://img.shields.io/badge/-Vanilla_JS-F7DF1E?style=flat-square&logo=javascript&logoColor=black) | High-performance, zero-dependency implementation. |
+| **Styling** | ![CSS3](https://img.shields.io/badge/-CSS3-1572B6?style=flat-square&logo=css3&logoColor=white) | Custom Glassmorphism design system. |
 
 ### Data Pipeline
 
@@ -63,7 +56,7 @@ graph LR
 
 ---
 
-## Installation
+## Deployment
 
 ### Backend Setup
 
@@ -71,59 +64,38 @@ graph LR
 # Clone the repository
 git clone https://github.com/AlpaganB/novacast.git
 
-# Navigate to directory
-cd novacast
+# Navigate to backend directory
+cd novacast/backend
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Run Server
-uvicorn main:app --reload
+# Execute Server
+uvicorn app:app --reload
 ```
 
 ### Frontend Configuration
 
-The frontend is built with **Vanilla JavaScript** and requires no build process.
+The frontend utilizes standard web technologies and requires no compilation.
 
-1.  Update the `API_BASE_URL` in `script.js` to point to your backend server.
-2.  Serve the `index.html` file using any static file server.
-
----
-
-## Caching Strategy
-
-To optimize API usage while maintaining data integrity, NovaCast employs a time-graduated caching mechanism:
-
-*   **Near-term (≤3 days):** 1-hour cache. High volatility requires frequent updates.
-*   **Mid-range (4-7 days):** 3-hour cache. Balanced update frequency.
-*   **Long-range (8+ days):** 6-hour cache. Stable long term trends allow for extended caching.
+1.  Configure the `API_BASE_URL` in `script.js` to point to the operational backend.
+2.  Deploy the `frontend/` directory via a static asset server.
 
 ---
 
-## Browser Compatibility
+## Compliance and Support
 
-| Browser | Supported Versions |
-| :--- | :--- |
-| **Chrome / Edge** | 90+ |
-| **Firefox** | 88+ |
-| **Safari** | 14+ |
-| **Mobile** | Modern WebViews (iOS & Android) |
+### License
 
-> **Note:** Internet Explorer is not supported.
+This project is licensed under the **MIT License**.
 
----
+### Acknowledgments
 
-## License
-
-This project is distributed under the **MIT License**. See `LICENSE` for more information.
-
-## Acknowledgments
-
-*   **NASA POWER Project**: For providing comprehensive solar and meteorological data sets.
-*   **Open Meteo**: For historical weather reanalysis data.
+-   **NASA POWER Project**: Source for global solar and meteorological data.
+-   **Open-Meteo**: Support for ERA5 reanalysis and Geocoding services.
 
 ---
 
 <div align="center">
-<b>NovaPulse</b> &copy; 2025
-</div>
+<b>NovaPulse Team</b> &copy; 2025
+
