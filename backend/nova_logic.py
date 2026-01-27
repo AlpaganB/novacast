@@ -632,8 +632,8 @@ async def forecast_core(lat: float, lon: float, horizon_days: int, reference_dat
     caps = slope_caps_by_month(tmax_hist)
     cap_vals = caps.loc[fut_idx.month].values # Vectorized lookup of caps
     
-    tmax_arr = df_fut['tmax_final'].values
-    tmin_arr = df_fut['tmin_final'].values # NEW
+    tmax_arr = df_fut['tmax_final'].values.copy()
+    tmin_arr = df_fut['tmin_final'].values.copy()
     source_arr = df_fut['source'].values
     
     prev_tmax = float(tmax_hist.dropna().iloc[-1])
