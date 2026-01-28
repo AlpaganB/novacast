@@ -723,6 +723,25 @@ window.selectFavorite = selectFavorite;
 window.removeFavorite = removeFavorite;
 window.closeStartupPopup = closeStartupPopup;
 window.useMyLocation = useMyLocation;
+window.openDatePicker = openDatePicker;
+
+function openDatePicker() {
+    const input = document.getElementById('dateInput');
+    if (input) {
+        if ('showPicker' in HTMLInputElement.prototype) {
+            try {
+                input.showPicker();
+            } catch (err) {
+                console.warn('showPicker failed, trying focus/click', err);
+                input.focus();
+                input.click();
+            }
+        } else {
+            input.focus();
+            input.click();
+        }
+    }
+}
 
 async function useMyLocation() {
     const btn = document.querySelector('.location-btn');
