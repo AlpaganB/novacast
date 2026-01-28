@@ -407,6 +407,7 @@ const i18n = {
         addToFav: "Add Current City to Favorites",
         planRecs: "📋 Plan Recommendations",
         useLocation: "Use my location",
+        selectDate: "Select Date",
         warnings: {
             heat: "Extreme Heat Warning. Avoid prolonged exposure. 🔥",
             warm: "High temperatures expected. ☀️",
@@ -428,6 +429,7 @@ const i18n = {
         addToFav: "Şehri Favorilere Ekle",
         planRecs: "📋 Plan Tavsiyeleri",
         useLocation: "Konumumu Kullan",
+        selectDate: "Tarih Seç",
         warnings: {
             heat: "Aşırı Sıcak Uyarısı. Uzun süre dışarıda kalmayınız. 🔥",
             warm: "Yüksek sıcaklık bekleniyor. ☀️",
