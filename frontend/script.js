@@ -1,10 +1,12 @@
-const API_BASE_URL = 'https://your-backend/api/predict';
+const API_BASE_URL = 'https://api.novacast.space/api/predict';
 const GEOCODING_API_URL = 'https://geocoding-api.open-meteo.com/v1/search';
 const MAX_FORECAST_DAYS = 540;
+const MAX_CACHED_CITIES = 10;
 let currentForecastData = null;
 let currentCity = '';
 let activeRequestId = 0;
 const pendingRequests = new Map();
+const cityCache = new Map();
 
 async function fetchWithDedup(url, options) {
     const key = url + JSON.stringify(options || {});
@@ -158,15 +160,16 @@ async function searchWeather(forceRefresh = false) {
         return;
     }
 
-    if (!forceRefresh && currentCity && currentCity.toLowerCase() === city.toLowerCase() && currentForecastData && currentForecastData.daily) {
-        if (isCacheValid()) {
-            const cachedForecast = currentForecastData.daily.find(f => {
-                return f.date === selectedISO;
-            });
-
+    if (!forceRefresh) {
+        const cacheKey = city.toLowerCase();
+        const cached = cityCache.get(cacheKey);
+        if (cached && cached.expiresAt > Date.now()) {
+            const cachedForecast = cached.daily.find(f => f.date === selectedISO);
             if (cachedForecast) {
-                console.log(`[CACHE] HIT (Expires in ${Math.round((currentForecastData.expiresAt - Date.now()) / 60000)} mins)`);
-                updateUI(city, selectedISO, cachedForecast);
+                console.log(`[MULTI-CACHE] HIT for ${city} (${Math.round((cached.expiresAt - Date.now()) / 60000)} mins left)`);
+                currentForecastData = cached;
+                currentCity = cached.cityName;
+                updateUI(cached.cityName, selectedISO, cachedForecast);
                 return;
             }
         }
@@ -216,6 +219,14 @@ async function searchWeather(forceRefresh = false) {
             cityName: location.resolvedName || city
         };
         currentCity = location.resolvedName || city;
+
+        const cacheKey = city.toLowerCase();
+        cityCache.set(cacheKey, currentForecastData);
+        if (cityCache.size > MAX_CACHED_CITIES) {
+            const oldestKey = cityCache.keys().next().value;
+            cityCache.delete(oldestKey);
+            console.log(`[CACHE] Evicted ${oldestKey} (LRU)`);
+        }
 
         const targetForecast = forecastList.find(f => {
             return f.date === selectedISO;

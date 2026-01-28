@@ -316,9 +316,9 @@ class SimpleAsyncCache:
 _forecast_cache = SimpleAsyncCache(ttl_seconds=3600)
 
 async def forecast_core(lat: float, lon: float, horizon_days: int, reference_date: Optional[date] = None, debug: bool=False, emit_components: bool=False):
-    H = int(max(1, min(horizon_days, 540)))
+    H = int(max(180, min(horizon_days, 540)))
     
-    cache_key = f"{round(lat, 3)}_{round(lon, 3)}_{H}_{reference_date}"
+    cache_key = f"{round(lat, 2)}_{round(lon, 2)}"
     cached_result = _forecast_cache.get(cache_key)
     if cached_result:
         if debug: print(f"⚡ CACHE HIT for {cache_key}")
