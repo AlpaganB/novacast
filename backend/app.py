@@ -16,7 +16,7 @@ except ImportError:
     VERSION = "Module Could Not Be Loaded"
     forecast_core = None
 
-app = FastAPI(title="NovaCast Weather Forecast API")
+app = FastAPI(title="Novacast Weather Forecast API")
 
 app.add_middleware(
     CORSMiddleware,

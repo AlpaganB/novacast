@@ -8,18 +8,21 @@ NovaCast utilizes advanced statistical ensemble methods combining **NASA POWER**
 
 [![NASA Space Apps](https://img.shields.io/badge/Challenge-NASA_Space_Apps_2025-005288?style=flat&logo=nasa&logoColor=white)](https://www.spaceappschallenge.org/)
 [![Team](https://img.shields.io/badge/Team-NovaPulse-purple?style=flat)](https://novapulse.com.tr)
-[![Version](https://img.shields.io/badge/Version-1.5.11-blue?style=flat)](index.html)
-[![License](https://img.shields.io/badge/License-MIT-green?style=flat)](LICENSE)
+[![Version](https://img.shields.io/badge/Version-2.0.0-blue?style=flat)](index.html)
+[![Status](https://img.shields.io/badge/Status-Stable-green?style=flat)](index.html)
 
 **[View Website](https://novacast.space)** &nbsp;•&nbsp; **[Report Bug](https://github.com/AlpaganB/novacast/issues)**
 
 </div>
 
-## Core Capabilities
+## **Key Features**
 
 | Feature | Description |
 | :--- | :--- |
+| **GPS Location Support** | Automatically detect your current city with a single click using GPS & Reverse Geocoding. |
+| **Smart Forecasting** | Uses weighted ensemble models combining **NASA POWER** historical data and **ERA5** reanalysis. |
 | **Long Range Vision** | Extended predictions up to **540 days** (1.5 years) utilizing ensemble forecasting. |
+| **Smart Caching** | Tiered backend caching (180/360 days) and multi-city frontend caching for instant load times. |
 | **Ensemble Engine** | Hybrid blending of **NASA POWER** and **ERA5** datasets for enhanced reliability. |
 | **Global Support** | Seamless coordinate resolution for cities worldwide with localized matching priorities. |
 | **In-Memory Caching** | 1 hour TTL cache for instant repeat requests, optimized for low resource servers. |
