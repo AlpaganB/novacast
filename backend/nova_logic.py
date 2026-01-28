@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import httpx
 
-VERSION = "novaLogic v2.1.0 (Async+Vectorized)"
+VERSION = "novaLogic v1.5.10"
 TZ = "auto"
 
 try:
@@ -89,7 +89,7 @@ async def fetch_openmeteo_daily(client, lat: float, lon: float, forecast_days: i
     return df, elev
 
 def wmo_code_to_text_vectorized(codes):
-    """Vectorized conversion of WMO codes to text"""
+
     conditions = [
         codes == 0, codes == 1, codes == 2, codes == 3,
         np.isin(codes, [45, 48]),
@@ -187,7 +187,7 @@ async def fetch_nasa_power_daily(client, lat: float, lon: float, start_date: str
 
 
 def smooth_harmonic(daily_series: pd.Series, harmonics: int = 3) -> pd.Series:
-    """Smooths a 365/366 day daily climatology using Fourier Harmonics"""
+
     s = daily_series.copy()
     vals = s.values
     
@@ -240,7 +240,7 @@ def same_day_climo_value(clim_by_doy: pd.Series, t: pd.Timestamp, day_window: in
     return float(np.mean(vals))
 
 def get_climo_series(clim_by_doy: pd.Series, idx: pd.DatetimeIndex) -> pd.Series:
-    """Vectorized retrieval of climatology values for a DateTimeIndex"""
+
     doy = idx.dayofyear.to_numpy()
     return clim_by_doy.reindex(doy).set_axis(idx)
 
@@ -269,7 +269,7 @@ def slope_caps_by_month(ts: pd.Series) -> pd.Series:
     out=pd.Series(5.0, index=range(1,13), dtype=float); out.update(caps); return out
 
 def infer_precip_type_vectorized(mm, tmax, rain_mm, snow_mm, prob):
-    """Vectorized precipitation type inference"""
+
     ptype = np.full(mm.shape, "none", dtype=object)
     
     valid = (prob >= 35) & (mm >= 0.25)
