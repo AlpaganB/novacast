@@ -400,12 +400,13 @@ const i18n = {
         appTitle: "Weather Forecast",
         enterCity: "Enter city name...",
         getWeather: "Get Weather",
-        welcomeTitle: "Welcome to NovaCast",
+        welcomeTitle: "Welcome to Novacast",
         welcomeText: "Enter a city name above to explore the forecast.",
         precipChance: "Precipitation",
         favCities: "Favorite Cities",
         addToFav: "Add Current City to Favorites",
         planRecs: "📋 Plan Recommendations",
+        useLocation: "Use my location",
         warnings: {
             heat: "Extreme Heat Warning. Avoid prolonged exposure. 🔥",
             warm: "High temperatures expected. ☀️",
@@ -420,12 +421,13 @@ const i18n = {
         appTitle: "Hava Durumu",
         enterCity: "Şehir ismi giriniz...",
         getWeather: "Hava Durumu",
-        welcomeTitle: "NovaCast'e Hoşgeldiniz",
+        welcomeTitle: "Novacast'e Hoşgeldiniz",
         welcomeText: "Tahmini görmek için yukarıya bir şehir ismi girin.",
         precipChance: "Yağış Durumu",
         favCities: "Favori Şehirler",
         addToFav: "Şehri Favorilere Ekle",
         planRecs: "📋 Plan Tavsiyeleri",
+        useLocation: "Konumumu Kullan",
         warnings: {
             heat: "Aşırı Sıcak Uyarısı. Uzun süre dışarıda kalmayınız. 🔥",
             warm: "Yüksek sıcaklık bekleniyor. ☀️",
@@ -484,6 +486,11 @@ function applyLanguage() {
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
         const key = el.getAttribute('data-i18n-placeholder');
         if (t[key]) el.placeholder = t[key];
+    });
+
+    document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        const key = el.getAttribute('data-i18n-title');
+        if (t[key]) el.title = t[key];
     });
 
     if (currentForecastData && currentForecastData.daily && currentForecastData.cityName) {
