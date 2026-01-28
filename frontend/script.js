@@ -643,6 +643,11 @@ function updatePlannerWarnings(forecast) {
 
 document.addEventListener('DOMContentLoaded', () => {
     applyInitialTheme();
+
+    const langBtn = document.querySelector('.lang-toggle');
+    if (langBtn) langBtn.textContent = currentLang === 'en' ? 'TR' : 'EN';
+    applyLanguage();
+
     initializeDateInputs();
     loadFavorites();
 
