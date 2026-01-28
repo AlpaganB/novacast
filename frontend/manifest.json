@@ -1,7 +1,7 @@
 {
     "name": "NovaCast Weather Forecast",
     "short_name": "NovaCast",
-    "description": "Advanced weather forecasting with NASA POWER ensemble & ERA5 data",
+    "description": "Advanced statistical long-term weather forecasting with NASA POWER & ERA5 ensemble data",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0f172a",

@@ -21,8 +21,6 @@ async function fetchWithDedup(url, options) {
     pendingRequests.set(key, promise);
     return promise;
 }
-
-// Date helpers
 function isoLocalDate(d = new Date()) {
     return d.toLocaleDateString('en-CA');
 }
@@ -38,8 +36,6 @@ function initializeDateInputs() {
         dateInput.min = todayStr;
         dateInput.max = maxStr;
         dateInput.value = todayStr;
-
-        // NEW: Make the whole input clickable to show picker
         dateInput.addEventListener('click', function () {
             try {
                 this.showPicker();
@@ -49,8 +45,6 @@ function initializeDateInputs() {
         });
     }
 }
-
-// Theme
 function applyInitialTheme() {
     const savedTheme = localStorage.getItem('theme');
     const isDark = savedTheme !== 'light';
@@ -59,21 +53,11 @@ function applyInitialTheme() {
     const themeToggle = document.querySelector('.theme-toggle');
     if (themeToggle) themeToggle.textContent = isDark ? '☀ Light Mode' : '🌙 Dark Mode';
 
-    const isPlanner = localStorage.getItem('plannerMode') === 'true';
-    document.body.classList.toggle('planner-mode', isPlanner);
-    const warningsDiv = document.getElementById('plannerWarnings');
-    if (warningsDiv) warningsDiv.classList.toggle('hidden', !isPlanner);
-    const plannerToggle = document.querySelector('.planner-toggle');
-    if (plannerToggle) plannerToggle.textContent = isPlanner ? '✅ Planner ON' : '📋 Planner Mode';
-
-    document.body.classList.toggle('image-background', localStorage.getItem('backgroundType') === 'image');
+    const savedLang = localStorage.getItem('novacastLang');
+    if (savedLang) currentLang = savedLang;
 }
-
-// Geocoding - Enhanced with smarter matching
 async function getCoordinates(city) {
     const geoUrl = `${GEOCODING_API_URL}?name=${encodeURIComponent(city)}&count=10&language=en&format=json`;
-
-    // Normalize Turkish characters for comparison
     const normalize = (str) => str.toLowerCase()
         .replace(/İ/g, 'i').replace(/I/g, 'i')
         .replace(/ı/g, 'i').replace(/i̇/g, 'i')
@@ -88,24 +72,16 @@ async function getCoordinates(city) {
 
         if (data.results && data.results.length > 0) {
             const searchNorm = normalize(city);
-
-            // Priority 1: Exact name match (normalized)
             let match = data.results.find(r => normalize(r.name) === searchNorm);
-
-            // Priority 2: Find the SHORTEST name that starts with search term
-            // This prevents "İzmirli" matching when "İzmir" exists
             if (!match) {
                 const startsWithMatches = data.results.filter(r =>
                     normalize(r.name).startsWith(searchNorm)
                 );
                 if (startsWithMatches.length > 0) {
-                    // Pick the shortest one (most likely the actual city)
                     startsWithMatches.sort((a, b) => a.name.length - b.name.length);
                     match = startsWithMatches[0];
                 }
             }
-
-            // Priority 3: Search term is in name (find shortest)
             if (!match) {
                 const includesMatches = data.results.filter(r =>
                     normalize(r.name).includes(searchNorm)
@@ -115,24 +91,17 @@ async function getCoordinates(city) {
                     match = includesMatches[0];
                 }
             }
-
-            // Fallback: First result
             if (!match) {
                 console.warn(`[GEO] No match for "${city}", using first result: ${data.results[0].name}`);
                 match = data.results[0];
             }
 
             console.log(`[GEO] Resolved "${city}" → ${match.name} (${match.country || 'Unknown'})`);
-
-            // Proper capitalization with Turkish support
             const capitalize = (str) => {
-                // Handle Turkish: i → İ (not I)
                 const first = str.charAt(0);
                 const upper = first === 'i' ? 'İ' : first.toUpperCase();
                 return upper + str.slice(1).toLowerCase();
             };
-
-            // Use capitalized version of user input if it matches
             const displayName = (normalize(city) === normalize(match.name))
                 ? capitalize(city.trim())
                 : match.name;
@@ -158,8 +127,6 @@ function determinePrecipitationType(forecast) {
     const tmax = Number(forecast.tmax ?? 0);
 
     if (p < 35) return 'None';
-
-    // The API returns 'rain', 'snow', 'sleet', 'none'
     if (forecast.precip_type) {
         const typeMap = { 'rain': 'Rain', 'snow': 'Snow', 'sleet': 'Mixed', 'none': 'None' };
         return typeMap[forecast.precip_type] || 'None';
@@ -172,29 +139,9 @@ function determinePrecipitationType(forecast) {
     return 'None';
 }
 
-// Cache logic
-// Cache logic
 function isCacheValid() {
     if (!currentForecastData || !currentForecastData.expiresAt) return false;
     return Date.now() < currentForecastData.expiresAt;
-}
-
-function updateCacheStatus(status) {
-    // For testing **
-    /*
-    const el = document.getElementById('cacheStatus');
-    if (!el) return;
- 
-    if (status === 'HIT') {
-    el.textContent = '⚡ Served from Cache';
-    el.style.color = '#00E676';
-    } else if (status === 'MISS') {
-    el.textContent = '🌐 Fetched from API';
-    el.style.color = '#2979FF';
-    } else {
-    el.textContent = '';
-    }
-    */
 }
 
 async function searchWeather(forceRefresh = false) {
@@ -211,8 +158,6 @@ async function searchWeather(forceRefresh = false) {
         return;
     }
 
-    // Cache check (updated to check .daily)
-    // Cache check
     if (!forceRefresh && currentCity && currentCity.toLowerCase() === city.toLowerCase() && currentForecastData && currentForecastData.daily) {
         if (isCacheValid()) {
             const cachedForecast = currentForecastData.daily.find(f => {
@@ -243,11 +188,9 @@ async function searchWeather(forceRefresh = false) {
 
         const todayISO = isoLocalDate(new Date());
         const leadDays = Math.ceil((new Date(selectedISO + 'T00:00:00') - new Date(todayISO + 'T00:00:00')) / (24 * 3600 * 1000));
-        // Dynamic horizon (fetch up to the selected date + buffer (45 days))
         const BUFFER_DAYS = 45;
         let horizon = leadDays + BUFFER_DAYS;
 
-        // Ensure minimum day (30) and maximum limit (MAX_FORECAST_DAYS)
         if (horizon < 30) horizon = 30;
         if (horizon > MAX_FORECAST_DAYS) horizon = MAX_FORECAST_DAYS;
 
@@ -266,19 +209,17 @@ async function searchWeather(forceRefresh = false) {
 
         if (requestId !== activeRequestId) return;
 
-        // Updated rawData.daily
         const forecastList = rawData.daily || [];
         const ttl = rawData.meta && rawData.meta.ttl_seconds ? rawData.meta.ttl_seconds : 3600;
 
         currentForecastData = {
             daily: forecastList,
-            expiresAt: Date.now() + (ttl * 1000), // Calculate absolute expiration time
+            expiresAt: Date.now() + (ttl * 1000),
             cityName: location.resolvedName || city
         };
         currentCity = location.resolvedName || city;
 
         const targetForecast = forecastList.find(f => {
-            // Updated f.date
             return f.date === selectedISO;
         });
 
@@ -314,7 +255,6 @@ function refreshForecast() {
     searchWeather(true);
 }
 
-// UI updates
 function updateUI(city, isoDate, forecast) {
     const emptyState = document.getElementById('emptyState');
     const weatherData = document.getElementById('weatherData');
@@ -324,7 +264,6 @@ function updateUI(city, isoDate, forecast) {
 
     document.getElementById('cityName').textContent = city;
 
-    // Date Translation
     let dateStr = isoDate;
     if (isoDate) {
         const d = new Date(isoDate);
@@ -350,7 +289,6 @@ function updateWeatherCard(forecast, customDesc = null) {
     const temp = (forecast.tmax !== 'Error') ? `${Math.round(forecast.tmax)}°C` : 'ERROR';
     document.getElementById('temperature').textContent = temp;
 
-    // NEW: TMIN Display with Translation
     if (forecast.tmin !== undefined && forecast.tmin !== null) {
         const nightLabel = currentLang === 'tr' ? 'Gece' : 'Night';
         document.getElementById('tempLow').textContent = `${nightLabel}: ${Math.round(forecast.tmin)}°C`;
@@ -362,36 +300,30 @@ function updateWeatherCard(forecast, customDesc = null) {
     const oldBadge = weatherDescElement.querySelector('.data-source-badge');
     if (oldBadge) oldBadge.remove();
 
-    // Use backend provided description if available, otherwise fallback
     let desc = customDesc || forecast.weather_desc || (currentLang === 'tr' ? 'Parçalı Bulutlu' : 'Partly Cloudy');
 
-    // Translation Logic
     const map = weatherMaps[currentLang];
     if (map) {
-        // Exact match
         if (map[desc]) {
             desc = map[desc];
         } else {
-            // Partial match
-            Object.keys(map).forEach(key => {
-                if (desc.includes(key)) desc = desc.replace(key, map[key]);
+            const keys = Object.keys(map).sort((a, b) => b.length - a.length);
+            keys.forEach(key => {
+                if (desc.includes(key)) {
+                    desc = desc.split(key).join(map[key]);
+                }
             });
         }
     }
     weatherDescElement.textContent = desc;
 
-    // Updated precip_prob
-    // updated precip_prob
-    // Unified Precipitation Display
     const prob = Math.round(forecast.precip_prob ?? 0);
     let pType = determinePrecipitationType(forecast);
 
-    // Type Inference: If probability is significant but type is missing, infer it
     if (prob > 15 && (pType === 'None' || pType === 'Clear' || !pType)) {
         pType = (forecast.tmax < 2) ? 'Snow' : 'Rain';
     }
 
-    // Translate Type
     const precipMap = weatherMaps[currentLang];
     if (precipMap && precipMap[pType]) {
         pType = precipMap[pType];
@@ -399,23 +331,22 @@ function updateWeatherCard(forecast, customDesc = null) {
 
     const summaryEl = document.getElementById('precipSummary');
     if (summaryEl) {
-        // Display based on probability thresholds - CONCISE format
+
         if (prob <= 30) {
-            // 0-30%: No precipitation
+
             const clearMsg = currentLang === 'tr' ? '☀️ Yağış beklenmiyor' : '☀️ No precipitation';
             summaryEl.textContent = clearMsg;
         } else if (prob <= 50) {
-            // 30-50%: Low chance - show percentage
+
             const typeStr = (pType && pType !== 'None' && pType !== 'Clear' && pType !== 'Açık') ? ` ${pType}` : '';
             summaryEl.textContent = `🌤️ ${prob}%${typeStr}`;
         } else {
-            // 50%+: High chance - SIMPLE format: "🌧️ 99% Rain"
+
             const typeStr = (pType && pType !== 'None' && pType !== 'Clear' && pType !== 'Açık') ? ` ${pType}` : '';
             summaryEl.textContent = `🌧️ ${prob}%${typeStr}`;
         }
     }
 
-    // NEW: Update Background based on weather
     updateBackground(forecast);
 }
 
@@ -429,9 +360,6 @@ function updateBackground(forecast) {
 
     let gradient = 'var(--bg-gradient-default)';
 
-    // Priority order: Storm > Snow > Rain > Cloudy > Sunny > Default
-    // Sunny also triggers on warm days (25°C+) without bad weather
-    // Snow also triggers on very cold days (<= -3°C)
     const isWarm = tmax >= 25;
     const isCold = tmax <= -3;
 
@@ -450,18 +378,14 @@ function updateBackground(forecast) {
     document.body.style.backgroundImage = gradient;
 }
 
-// Toggles
 function toggleTheme() {
     const isLight = document.body.classList.toggle('light-mode');
     localStorage.setItem('theme', isLight ? 'light' : 'dark');
     const themeToggle = document.querySelector('.theme-toggle');
     if (themeToggle) themeToggle.textContent = isLight ? '🌙 Dark Mode' : '☀ Light Mode';
 
-    // Re-trigger background update in case theme colors change
-
 }
 
-// Language & Translation System
 const i18n = {
     en: {
         appTitle: "Weather Forecast",
@@ -470,7 +394,6 @@ const i18n = {
         welcomeTitle: "Welcome to NovaCast",
         welcomeText: "Enter a city name above to explore the forecast.",
         precipChance: "Precipitation",
-        // precipType removed from UI
         favCities: "Favorite Cities",
         addToFav: "Add Current City to Favorites",
         planRecs: "📋 Plan Recommendations",
@@ -491,7 +414,6 @@ const i18n = {
         welcomeTitle: "NovaCast'e Hoşgeldiniz",
         welcomeText: "Tahmini görmek için yukarıya bir şehir ismi girin.",
         precipChance: "Yağış Durumu",
-        // precipType removed from UI
         favCities: "Favori Şehirler",
         addToFav: "Şehri Favorilere Ekle",
         planRecs: "📋 Plan Tavsiyeleri",
@@ -515,19 +437,28 @@ const weatherMaps = {
         'Cloudy': 'Cloudy', 'Overcast': 'Overcast', 'Partly': 'Partly', 'Fog': 'Fog', 'Mist': 'Mist', 'Drizzle': 'Drizzle'
     },
     tr: {
-        'Rain': 'Yağmur', 'Snow': 'Kar', 'Mixed': 'Karla Karışık', 'None': 'Açık', 'Clear': 'Açık',
-        'Night': 'Gece', 'Sun': 'Güneş', 'Sleet': 'Karla Karışık', 'Ice': 'Buzlanma',
+        'Rain Showers': 'Sağanak Yağış',
+        'Snow Showers': 'Kar Yağışı',
+        'Light Rain': 'Hafif Yağmur',
+        'Heavy Rain': 'Şiddetli Yağmur',
+        'Light Snow': 'Hafif Kar',
+        'Heavy Snow': 'Yoğun Kar',
+        'Mainly Clear': 'Çoğunlukla Açık',
+        'Partly Cloudy': 'Parçalı Bulutlu',
+
+        'Rain': 'Yağmurlu', 'Snow': 'Karlı', 'Mixed': 'Karla Karışık', 'None': 'Açık', 'Clear': 'Açık',
+        'Night': 'Gece', 'Sun': 'Güneşli', 'Sleet': 'Karla Karışık', 'Ice': 'Buzlanma',
         'Showers': 'Sağanak', 'Light': 'Hafif', 'Heavy': 'Yoğun', 'Thunderstorm': 'Gök Gürültülü',
-        'Cloudy': 'Bulutlu', 'Overcast': 'Kapalı', 'Partly': 'Parçalı', 'Fog': 'Sis', 'Mist': 'Pus', 'Drizzle': 'Çiseleyen'
+        'Cloudy': 'Bulutlu', 'Overcast': 'Kapalı', 'Partly': 'Parçalı', 'Fog': 'Sisli', 'Mist': 'Puslu', 'Drizzle': 'Çiseleyen'
     }
 };
 
-let currentLang = 'en'; // Default English
+let currentLang = 'en';
 
 function toggleLanguage() {
     currentLang = currentLang === 'en' ? 'tr' : 'en';
+    localStorage.setItem('novacastLang', currentLang);
     const btn = document.querySelector('.lang-toggle');
-    // Simplified button text as requested
     if (btn) btn.textContent = currentLang === 'en' ? 'TR' : 'EN';
 
     applyLanguage();
@@ -536,21 +467,18 @@ function toggleLanguage() {
 function applyLanguage() {
     const t = i18n[currentLang];
 
-    // Update simple text elements
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
         if (t[key]) el.textContent = t[key];
     });
 
-    // Update placeholders
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
         const key = el.getAttribute('data-i18n-placeholder');
         if (t[key]) el.placeholder = t[key];
     });
 
-    // Re-render current data to apply deep translations (Date, Desc, Warnings)
     if (currentForecastData && currentForecastData.daily && currentForecastData.cityName) {
-        // Use the input date value to find the currently displayed day
+
         const dateInputVal = document.getElementById('dateInput').value;
         const target = currentForecastData.daily.find(f => f.date === dateInputVal) || currentForecastData.daily[0];
 
@@ -560,7 +488,6 @@ function applyLanguage() {
     }
 }
 
-// Toast notifications
 function showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
     if (!container) return;
@@ -575,7 +502,6 @@ function showToast(message, type = 'info') {
 
     container.appendChild(toast);
 
-    // Auto remove after 4 seconds
     setTimeout(() => {
         toast.style.animation = 'fadeOut 0.3s ease-out forwards';
         toast.addEventListener('animationend', () => {
@@ -586,7 +512,6 @@ function showToast(message, type = 'info') {
 
 window.showToast = showToast;
 
-// Favorites
 function loadFavorites() {
     const favorites = JSON.parse(localStorage.getItem('novaPulseFavorites')) || [];
     const container = document.getElementById('favoriteCities');
@@ -603,10 +528,30 @@ function loadFavorites() {
     favorites.forEach(city => {
         const cityDiv = document.createElement('div');
         cityDiv.className = 'favorite-city-item';
-        cityDiv.innerHTML = `
-        <span onclick="selectFavorite('${city}')">${city}</span>
-        <button onclick="removeFavorite('${city}')" class="remove-btn">×</button>
-        `;
+
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = city;
+        nameSpan.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectFavorite(city);
+        });
+
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-btn';
+        removeBtn.textContent = '×';
+        removeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            removeFavorite(city);
+        });
+
+        cityDiv.appendChild(nameSpan);
+        cityDiv.appendChild(removeBtn);
+        cityDiv.addEventListener('click', (e) => {
+            if (e.target !== removeBtn) {
+                selectFavorite(city);
+            }
+        });
+
         container.appendChild(cityDiv);
     });
 }
@@ -614,7 +559,6 @@ function loadFavorites() {
 function addToFavorites() {
     let cityToAdd = currentCity;
 
-    // If no active search, check the input field
     if (!cityToAdd) {
         const inputVal = document.getElementById('cityInput').value.trim();
         if (inputVal) {
@@ -626,7 +570,6 @@ function addToFavorites() {
     }
 
     let favorites = JSON.parse(localStorage.getItem('novaPulseFavorites')) || [];
-    // Title case formatting
     cityToAdd = cityToAdd.charAt(0).toUpperCase() + cityToAdd.slice(1);
 
     if (!favorites.includes(cityToAdd)) {
@@ -638,7 +581,6 @@ function addToFavorites() {
         showToast(currentLang === 'tr' ? 'Bu şehir zaten favorilerde' : 'City already in favorites', 'info');
     }
 }
-
 
 function selectFavorite(city) {
     const cityInput = document.getElementById('cityInput');
@@ -655,7 +597,6 @@ function removeFavorite(cityToRemove) {
     loadFavorites();
 }
 
-// Planner warnings
 function updatePlannerWarnings(forecast) {
     const container = document.getElementById('warningsContainer');
     if (!container) return;
@@ -666,7 +607,6 @@ function updatePlannerWarnings(forecast) {
 
     const t = i18n[currentLang].warnings;
 
-    // Temperature Warnings
     const tmax = Number(forecast.tmax);
     if (tmax >= 35) {
         warnings.push({ text: t.heat, level: 'danger' });
@@ -676,7 +616,6 @@ function updatePlannerWarnings(forecast) {
         warnings.push({ text: t.cold, level: 'danger' });
     }
 
-    // Precip Warnings
     const p = Number(forecast.precip_prob ?? 0);
     const type = currentPrecipType.toLowerCase();
 
@@ -688,7 +627,6 @@ function updatePlannerWarnings(forecast) {
         warnings.push({ text: t.rainChance, level: 'warning' });
     }
 
-    // Good Weather Bonus
     if (p < 20 && tmax > 18 && tmax < 28) {
         warnings.push({ text: t.perfect, level: 'success' });
     }
@@ -705,13 +643,11 @@ function updatePlannerWarnings(forecast) {
     }
 }
 
-// Initialization
 document.addEventListener('DOMContentLoaded', () => {
     applyInitialTheme();
     initializeDateInputs();
     loadFavorites();
 
-    // Initial Empty State Check
     const emptyState = document.getElementById('emptyState');
     const weatherData = document.getElementById('weatherData');
     if (emptyState && weatherData) {
@@ -722,22 +658,23 @@ document.addEventListener('DOMContentLoaded', () => {
     showStartupPopup();
 });
 
-// Startup popup
 function showStartupPopup() {
-
     if (localStorage.getItem('startupPopupSeen')) return;
+
+    const titleText = currentLang === 'tr' ? 'NovaCast\'a Hoşgeldiniz!' : 'Welcome to NovaCast!';
+    const bodyText = currentLang === 'tr'
+        ? 'Sunucumuz uyandığı için ilk tahmin <strong>1 dakika</strong> kadar sürebilir (Soğuk Başlangıç).<br><br>Lütfen sabırlı olun, sonraki istekler çok daha hızlı olacak! ⚡'
+        : 'Since our AI models run on a free tier server, the first prediction might take up to <strong>1 minute</strong> to wake up the system (Cold Start).<br><br>Please be patient, subsequent requests will be much faster! ⚡';
+    const buttonText = currentLang === 'tr' ? 'Anladım, teşekkürler!' : 'Got it, thanks!';
 
     const popupOverlay = document.createElement('div');
     popupOverlay.className = 'popup-overlay';
     popupOverlay.innerHTML = `
         <div class="popup-content">
         <div class="popup-icon">🚀</div>
-        <div class="popup-title">Welcome to NovaCast!</div>
-        <div class="popup-text">
-            Since our AI models run on a free tier server, the first prediction might take up to <strong>1 minute</strong> to wake up the system (Cold Start).<br><br>
-            Please be patient, subsequent requests will be much faster! ⚡
-        </div>
-        <button class="popup-close-btn" onclick="closeStartupPopup(this)">Got it, thanks!</button>
+        <div class="popup-title">${titleText}</div>
+        <div class="popup-text">${bodyText}</div>
+        <button class="popup-close-btn" onclick="closeStartupPopup(this)">${buttonText}</button>
         </div>
     `;
     document.body.appendChild(popupOverlay);
@@ -754,7 +691,6 @@ function closeStartupPopup(btn) {
     }
 }
 
-// Global window assignments
 window.searchWeather = searchWeather;
 window.refreshForecast = refreshForecast;
 window.toggleTheme = toggleTheme;

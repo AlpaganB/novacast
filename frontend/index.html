@@ -12,11 +12,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>NovaCast</title>
-    <!-- Fonts: Outfit (Modern, Geometric) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=1.5.5">
+    <link rel="stylesheet" href="styles.css?v=1.5.11">
     <link rel="icon" type="image/webp" href="IMG_5959.webp">
     <link rel="apple-touch-icon" href="IMG_5959.webp">
     <link rel="manifest" href="manifest.json">
@@ -55,7 +54,6 @@
                     <p data-i18n="welcomeText">Enter a city name above to explore the forecast.</p>
                 </div>
 
-
                 <div class="weather-data-container" id="weatherData" style="display: none;">
                     <div class="location-info">
                         <div class="city-name" id="cityName">-</div>
@@ -87,18 +85,13 @@
                 </button>
             </div>
         </div>
-        <!-- Warnings moved/hidden based on logic, but keeping struct if needed or removed? User said wasteful. Removing div. -->
-
-        <div class="planner-warnings hidden" id="plannerWarnings">
-            <h3 data-i18n="planRecs">📋 Plan Recommendations</h3>
-            <div id="warningsContainer"></div>
-        </div>
+    </div>
     </div>
 
     <footer>
         <div class="footer-content">
             <div>NovaPulse® &middot; 04.10.2025</div>
-            <div class="version">NovaCast 1.5.5</div>
+            <div class="version">NovaCast 1.5.11</div>
             <div class="space-apps-logo">
                 <img src="Colorway=2-Color White@3x.png" alt="NASA Space Apps Challenge Logo Dark"
                     class="space-logo dark-logo">
@@ -109,7 +102,7 @@
     </footer>
 
     <div id="toast-container"></div>
-    <script src="script.js?v=1.5.5"></script>
+    <script src="script.js?v=1.5.11"></script>
 
 </body>
 

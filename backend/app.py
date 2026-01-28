@@ -7,21 +7,17 @@ import traceback
 import sys
 import os
 
-# Ensure the current directory is in sys.path so we can import nova_logic
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 try:
     from nova_logic import forecast_core, VERSION
 except ImportError:
-    # ERROR: 'nova_logic.py' not found.
     print("ERROR: 'nova_logic.py' not found.")
     VERSION = "Module Could Not Be Loaded"
     forecast_core = None
 
-# Initialize FastAPI application (NovaCast Weather Forecast API)
 app = FastAPI(title="NovaCast Weather Forecast API")
 
-# Add CORS Middleware to allow requests from any origin
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -29,7 +25,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Pydantic model for the request body
 class WeatherRequest(BaseModel):
     lat: float
     lon: float
@@ -38,33 +33,27 @@ class WeatherRequest(BaseModel):
 
 @app.get("/")
 async def home():
-    # Return a simple status message since frontend is hosted separately
     return {"status": "ok", "message": "NovaCast API is running", "version": VERSION}
 
 @app.post("/api/predict")
 async def predict_weather(req: WeatherRequest):
     if forecast_core is None:
-        # Raise 503 if the core logic could not be loaded
         raise HTTPException(
             status_code=503,
             detail="Forecast service is not ready (nova_logic.py could not be loaded)."
         )
 
     try:
-        # Convert target_date string to date object (YYYYMMDD)
         target_date_obj = datetime.strptime(req.target_date, "%Y%m%d").date()
         today = date.today()
-        # Calculate the number of days between today and the target date
         horizon_days = (target_date_obj - today).days
 
         if horizon_days < 0:
             raise HTTPException(status_code=400, detail="Target date cannot be in the past.")
 
-        # Determine the required forecast horizon
         required_horizon = max(req.horizon_days, horizon_days + 1)
-        required_horizon = min(required_horizon, 540) # Limit increased
+        required_horizon = min(required_horizon, 540)
 
-        # Call the core forecasting function (Async await)
         full_output, daily_forecasts = await forecast_core(
             lat=req.lat,
             lon=req.lon,
@@ -73,19 +62,16 @@ async def predict_weather(req: WeatherRequest):
         )
 
         if not daily_forecasts or len(daily_forecasts) == 0:
-            # ERROR: forecast_core returned an empty list.
             print("ERROR: forecast_core returned an empty list.")
             raise HTTPException(
                 status_code=404,
                 detail="No daily data received from the forecast engine."
             )
 
-        # Returning N days of data
         print(f"✓ Returning {len(daily_forecasts)} days of data")
         return {"daily": daily_forecasts}
 
     except ValueError as ve:
-        # Handle incorrect date format OR ValueError from forecast_core
         print("="*50)
         print(f"❌ ValueError caught: {str(ve)}")
         print(traceback.format_exc())
@@ -95,10 +81,8 @@ async def predict_weather(req: WeatherRequest):
             detail=f"Data processing error: {str(ve)}"
         )
     except HTTPException as http_e:
-        # Re-raise explicit HTTPExceptions
         raise http_e
     except Exception as e:
-        # Catch and handle all other unexpected server errors
         print("="*50)
         print("❌ UNEXPECTED SERVER ERROR:")
         print(f"Error: {str(e)}")
