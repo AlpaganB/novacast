@@ -193,7 +193,7 @@ async function searchWeather(forceRefresh = false) {
         let horizon = leadDays + BUFFER_DAYS;
 
         if (horizon < 30) horizon = 30;
-        if (horizon > MAX_FORECAST_DAYS) horizon = MAX_FORECAST_DAYS;
+        if (horizon > 540) horizon = 560;
 
         const requestData = {
             lat: location.lat,

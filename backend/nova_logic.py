@@ -320,8 +320,10 @@ async def forecast_core(lat: float, lon: float, horizon_days: int, reference_dat
         H = 180
     elif horizon_days <= 360:
         H = 360
-    else:
+    elif horizon_days <= 540:
         H = 540
+    else:
+        H = 570
     
     cache_key = f"{round(lat, 2)}_{round(lon, 2)}_{H}"
     cached_result = _forecast_cache.get(cache_key)

@@ -52,7 +52,7 @@ async def predict_weather(req: WeatherRequest):
             raise HTTPException(status_code=400, detail="Target date cannot be in the past.")
 
         required_horizon = max(req.horizon_days, horizon_days + 1)
-        required_horizon = min(required_horizon, 540)
+        required_horizon = min(required_horizon, 560)
 
         full_output, daily_forecasts = await forecast_core(
             lat=req.lat,
