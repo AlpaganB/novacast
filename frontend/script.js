@@ -166,14 +166,12 @@ async function searchWeather(forceRefresh = false) {
 
             if (cachedForecast) {
                 console.log(`[CACHE] HIT (Expires in ${Math.round((currentForecastData.expiresAt - Date.now()) / 60000)} mins)`);
-                updateCacheStatus('HIT');
                 updateUI(city, selectedISO, cachedForecast);
                 return;
             }
         }
     }
 
-    updateCacheStatus('MISS');
     const requestId = ++activeRequestId;
     console.log(`[REQUEST] #${requestId} for ${city}`);
 
