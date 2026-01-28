@@ -254,6 +254,13 @@ def warming_offset(idx: pd.DatetimeIndex, per_decade=0.3, baseline_year=2020.5):
     
     return pd.Series((years_frac - baseline_year) * per_year, index=idx, dtype=float)
 
+def apply_slope_cap(prev_val: float, candidate: float, cap: float, k: float = 1.0) -> float:
+    diff = candidate - prev_val
+    if abs(diff) > cap * k:
+        sign = 1 if diff > 0 else -1
+        return prev_val + sign * cap * k
+    return candidate
+
 def slope_caps_by_month(ts: pd.Series) -> pd.Series:
     df=pd.DataFrame({"v":pd.to_numeric(ts, errors="coerce")}).dropna()
     if df.empty: return pd.Series(5.0, index=range(1,13), dtype=float)
