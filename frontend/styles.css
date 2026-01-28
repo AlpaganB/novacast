@@ -189,6 +189,66 @@ header {
     width: 100%;
 }
 
+.city-input-wrapper {
+    position: relative;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+}
+
+.city-input-wrapper .search-input {
+    padding-right: 48px;
+    width: 100%;
+}
+
+.location-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(59, 130, 246, 0.15);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.location-btn:hover {
+    background: rgba(59, 130, 246, 0.25);
+    border-color: var(--primary-color);
+    transform: translateY(-50%) scale(1.05);
+}
+
+.location-btn:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.location-btn.loading {
+    pointer-events: none;
+}
+
+.location-btn.loading svg {
+    animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.4;
+    }
+}
+
 .search-input,
 .date-input {
     flex-grow: 1;
@@ -619,6 +679,10 @@ footer {
         flex-direction: column;
 
         gap: 12px;
+        width: 100%;
+    }
+
+    .city-input-wrapper {
         width: 100%;
     }
 

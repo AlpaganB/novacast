@@ -19,6 +19,9 @@
         "weather",
         "utilities"
     ],
+    "permissions": [
+        "geolocation"
+    ],
     "lang": "en-US",
     "dir": "ltr"
 }

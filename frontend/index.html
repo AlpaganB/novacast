@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=1.5.11">
+    <link rel="stylesheet" href="styles.css?v=1.5.15">
     <link rel="icon" type="image/webp" href="IMG_5959.webp">
     <link rel="apple-touch-icon" href="IMG_5959.webp">
     <link rel="manifest" href="manifest.json">
@@ -36,8 +36,19 @@
         <section class="search-section">
             <div class="search-container">
                 <div class="search-group-left">
-                    <input type="text" class="search-input" placeholder="Enter city name..." id="cityInput"
-                        data-i18n-placeholder="enterCity">
+                    <div class="city-input-wrapper">
+                        <input type="text" class="search-input" placeholder="Enter city name..." id="cityInput"
+                            data-i18n-placeholder="enterCity">
+                        <button class="location-btn" onclick="useMyLocation()" title="Konumumu Kullan"
+                            data-i18n-title="useLocation">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M12 2v4m0 12v4m10-10h-4M6 12H2"></path>
+                            </svg>
+                        </button>
+                    </div>
                     <input type="date" class="date-input" id="dateInput" min="" max="">
                 </div>
                 <button class="search-btn" onclick="searchWeather()" data-i18n="getWeather">Get Weather</button>
@@ -91,7 +102,7 @@
     <footer>
         <div class="footer-content">
             <div>NovaPulse® &middot; 04.10.2025</div>
-            <div class="version">NovaCast 1.5.11</div>
+            <div class="version">NovaCast 1.5.15</div>
             <div class="space-apps-logo">
                 <img src="Colorway=2-Color White@3x.png" alt="NASA Space Apps Challenge Logo Dark"
                     class="space-logo dark-logo">
@@ -102,7 +113,7 @@
     </footer>
 
     <div id="toast-container"></div>
-    <script src="script.js?v=1.5.11"></script>
+    <script src="script.js?v=1.5.15"></script>
 
 </body>
 

@@ -713,4 +713,50 @@ window.addToFavorites = addToFavorites;
 window.selectFavorite = selectFavorite;
 window.removeFavorite = removeFavorite;
 window.closeStartupPopup = closeStartupPopup;
+window.useMyLocation = useMyLocation;
+
+async function useMyLocation() {
+    const btn = document.querySelector('.location-btn');
+
+    if (!navigator.geolocation) {
+        showToast(currentLang === 'tr' ? 'Tarayıcınız konum desteklemiyor.' : 'Your browser does not support geolocation.', 'error');
+        return;
+    }
+
+    btn?.classList.add('loading');
+
+    navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+            try {
+                const { latitude, longitude } = pos.coords;
+                const response = await fetch(
+                    `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=${currentLang}`
+                );
+                const data = await response.json();
+
+                const cityName = data.address?.city || data.address?.town || data.address?.municipality || data.address?.village || data.address?.county ||
+                    (currentLang === 'tr' ? 'Konumunuz' : 'Your Location');
+
+                document.getElementById('cityInput').value = cityName;
+                btn?.classList.remove('loading');
+
+                showToast(currentLang === 'tr' ? `📍 Konum algılandı: ${cityName}` : `📍 Location detected: ${cityName}`, 'success');
+                searchWeather();
+            } catch (err) {
+                btn?.classList.remove('loading');
+                showToast(currentLang === 'tr' ? 'Konum bilgisi alınamadı.' : 'Could not get location info.', 'error');
+            }
+        },
+        (err) => {
+            btn?.classList.remove('loading');
+            const msgs = {
+                1: currentLang === 'tr' ? 'Konum izni reddedildi.' : 'Location permission denied.',
+                2: currentLang === 'tr' ? 'Konum alınamadı.' : 'Location unavailable.',
+                3: currentLang === 'tr' ? 'Konum isteği zaman aşımına uğradı.' : 'Location request timed out.'
+            };
+            showToast(msgs[err.code] || err.message, 'error');
+        },
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
+    );
+}
 
