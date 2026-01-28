@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://api.novacast.space/api/predict';
+const API_BASE_URL = 'https://your-backend/api/predict';
 const GEOCODING_API_URL = 'https://geocoding-api.open-meteo.com/v1/search';
 const MAX_FORECAST_DAYS = 540;
 const MAX_CACHED_CITIES = 10;
@@ -713,3 +713,4 @@ window.addToFavorites = addToFavorites;
 window.selectFavorite = selectFavorite;
 window.removeFavorite = removeFavorite;
 window.closeStartupPopup = closeStartupPopup;
+
