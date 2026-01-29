@@ -684,11 +684,11 @@ document.addEventListener('DOMContentLoaded', () => {
 function showStartupPopup() {
     if (localStorage.getItem('startupPopupSeen')) return;
 
-    const titleText = currentLang === 'tr' ? 'NovaCast\'a Hoşgeldiniz!' : 'Welcome to NovaCast!';
+    const titleText = currentLang === 'tr' ? 'Novacast\'a Hoş Geldiniz!' : 'Welcome to Novacast!';
     const bodyText = currentLang === 'tr'
-        ? 'Sunucumuz uyandığı için ilk tahmin <strong>1 dakika</strong> kadar sürebilir (Soğuk Başlangıç).<br><br>Lütfen sabırlı olun, sonraki istekler çok daha hızlı olacak! ⚡'
-        : 'Since our AI models run on a free tier server, the first prediction might take up to <strong>1 minute</strong> to wake up the system (Cold Start).<br><br>Please be patient, subsequent requests will be much faster! ⚡';
-    const buttonText = currentLang === 'tr' ? 'Anladım, teşekkürler!' : 'Got it, thanks!';
+        ? 'Tahmin motoru şu an başlatılıyor. İlk sorgunun tamamlanması yaklaşık <strong>1 dakika</strong> sürebilir.<br><br>Sabrınız için teşekkürler, sonraki istekler hızlıca yanıtlanacaktır!'
+        : 'Initializing the forecast engine. The first request may take up to <strong>1 minute</strong> to process while the system prepares.<br><br>Thank you for your patience. Subsequent requests will be fast!';
+    const buttonText = currentLang === 'tr' ? 'Hadi Başlayalım' : 'Let\'s Start';
 
     const popupOverlay = document.createElement('div');
     popupOverlay.className = 'popup-overlay';
@@ -787,4 +787,3 @@ async function useMyLocation() {
         { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
     );
 }
-
