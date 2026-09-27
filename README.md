@@ -11,7 +11,7 @@ NovaCast utilizes advanced statistical ensemble methods combining **NASA POWER**
 [![Version](https://img.shields.io/badge/Version-2.0.0-blue?style=flat)](index.html)
 [![Status](https://img.shields.io/badge/Status-Stable-green?style=flat)](index.html)
 
-**[View Website](https://novacast.space)** &nbsp;•&nbsp; **[Report Bug](https://github.com/AlpaganB/novacast/issues)**
+**[View Website](https://novacast.site)** &nbsp;•&nbsp; **[Report Bug](https://github.com/AlpaganB/novacast/issues)**
 
 </div>
 
