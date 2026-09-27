@@ -32,7 +32,7 @@ def dprint(msg, dbg=False):
     if dbg:
         print(str(msg), flush=True)
 
-UA = {"User-Agent": "novaLogic/2.0.0 (contact: alpagan@novacast.space)"}
+UA = {"User-Agent": "novaLogic/2.0.0 (contact: alpagan@novacast.site)"}
 
 async def http_get_json(client, url, params=None, timeout=45, retries=3, backoff=1.25, debug=False):
     hdr = {"Accept":"application/json", **UA}
