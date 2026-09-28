@@ -7,9 +7,9 @@
 NovaCast utilizes advanced statistical ensemble methods combining **NASA POWER** and **ERA5** data to deliver data driven long range weather forecasts up to **1.5 years ahead**.
 
 [![NASA Space Apps](https://img.shields.io/badge/Challenge-NASA_Space_Apps_2025-005288?style=flat&logo=nasa&logoColor=white)](https://www.spaceappschallenge.org/)
-[![Team](https://img.shields.io/badge/Team-NovaPulse-purple?style=flat)](https://novapulse.com.tr)
-[![Version](https://img.shields.io/badge/Version-2.0.0-blue?style=flat)](index.html)
-[![Status](https://img.shields.io/badge/Status-Stable-green?style=flat)](index.html)
+[![Team](https://img.shields.io/badge/Team-NovaPulse-purple?style=flat)](https://stack-11.com)
+[![Version](https://img.shields.io/badge/Version-2.0.0-blue?style=flat)](https://novacast.site)
+[![Status](https://img.shields.io/badge/Status-Stable-green?style=flat)](https://novacast.site)
 
 **[View Website](https://novacast.site)** &nbsp;•&nbsp; **[Report Bug](https://github.com/AlpaganB/novacast/issues)**
 
